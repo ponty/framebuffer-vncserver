@@ -1,0 +1,8 @@
+language: c
+install:
+ - sudo apt-get update -qq
+ - sudo apt-get install -y libvncserver-dev cmake qt4-qmake 
+
+script:  
+ - mkdir -p build1 && cd build1 && cmake .. && make
+ - mkdir -p build2 && cd build2 && qmake .. && make
