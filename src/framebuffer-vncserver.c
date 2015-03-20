@@ -46,8 +46,7 @@ static unsigned short int *fbmmap = MAP_FAILED;
 static unsigned short int *vncbuf;
 static unsigned short int *fbbuf;
 
-/* Android already has 5900 bound natively. */
-#define VNC_PORT 5901
+static int VNC_PORT = 5900;
 static rfbScreenInfoPtr vncscr;
 
 
@@ -253,13 +252,13 @@ int main(int argc, char **argv)
 						print_usage(argv);
 						exit(0);
 						break;
-					case 'k':
+					case 'f':
 						i++;
-						strcpy(KBD_DEVICE, argv[i]);
+						strcpy(FB_DEVICE, argv[i]);
 						break;
-					case 't':
+					case 'p':
 						i++;
-						strcpy(TOUCH_DEVICE, argv[i]);
+						VNC_PORT = atoi(argv[i]);
 						break;
 				}
 			}
