@@ -131,7 +131,7 @@ static void init_fb_server(int argc, char **argv)
 	vncscr = rfbGetScreen(&argc, argv, scrinfo.xres, scrinfo.yres, 5, 2, (scrinfo.bits_per_pixel / 8));
 	assert(vncscr != NULL);
 
-	vncscr->desktopName = "Android";
+	vncscr->desktopName = "framebuffer";
 	vncscr->frameBuffer = (char *)vncbuf;
 	vncscr->alwaysShared = TRUE;
 	vncscr->httpDir = NULL;
