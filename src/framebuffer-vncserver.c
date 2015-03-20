@@ -76,13 +76,13 @@ static void init_fb(void)
 
 	if ((fbfd = open(FB_DEVICE, O_RDONLY)) == -1)
 	{
-		printf("cannot open fb device %s\n", FB_DEVICE);
+        fprintf(stderr, "cannot open fb device %s\n", FB_DEVICE);
 		exit(EXIT_FAILURE);
 	}
 
 	if (ioctl(fbfd, FBIOGET_VSCREENINFO, &scrinfo) != 0)
 	{
-		printf("ioctl error\n");
+        fprintf(stderr, "ioctl error\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -99,7 +99,7 @@ static void init_fb(void)
 
 	if (fbmmap == MAP_FAILED)
 	{
-		printf("mmap failed\n");
+        fprintf(stderr, "mmap failed\n");
 		exit(EXIT_FAILURE);
 	}
 }
@@ -116,7 +116,7 @@ static void cleanup_fb(void)
 
 static void init_fb_server(int argc, char **argv)
 {
-	printf("Initializing server...\n");
+    fprintf(stderr, "Initializing server...\n");
 
 	/* Allocate the VNC server buffer to be managed (not manipulated) by
 	 * libvncserver. */
@@ -267,16 +267,14 @@ int main(int argc, char **argv)
 		}
 	}
 
-	printf("Initializing framebuffer device " FB_DEVICE "...\n");
+    fprintf(stderr, "Initializing framebuffer device %s...\n", FB_DEVICE);
 	init_fb();
-	printf("Initializing keyboard device %s ...\n", KBD_DEVICE);
-	printf("Initializing touch device %s ...\n", TOUCH_DEVICE);
 
-	printf("Initializing VNC server:\n");
-	printf("	width:  %d\n", (int)scrinfo.xres);
-	printf("	height: %d\n", (int)scrinfo.yres);
-	printf("	bpp:    %d\n", (int)scrinfo.bits_per_pixel);
-	printf("	port:   %d\n", (int)VNC_PORT);
+    fprintf(stderr, "Initializing VNC server:\n");
+    fprintf(stderr, "	width:  %d\n", (int)scrinfo.xres);
+    fprintf(stderr, "	height: %d\n", (int)scrinfo.yres);
+    fprintf(stderr, "	bpp:    %d\n", (int)scrinfo.bits_per_pixel);
+    fprintf(stderr, "	port:   %d\n", (int)VNC_PORT);
 	init_fb_server(argc, argv);
 
 	/* Implement our own event loop to detect changes in the framebuffer. */
@@ -289,6 +287,6 @@ int main(int argc, char **argv)
 		update_screen();
 	}
 
-	printf("Cleaning up...\n");
+    fprintf(stderr, "Cleaning up...\n");
 	cleanup_fb();
 }
