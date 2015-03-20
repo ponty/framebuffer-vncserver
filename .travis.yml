@@ -4,5 +4,5 @@ install:
  - sudo apt-get install -y libvncserver-dev cmake qt4-qmake 
 
 script:  
- - mkdir -p build1 && cd build1 && cmake .. && make
- - mkdir -p build2 && cd build2 && qmake ../framebuffer-vncserver.pro && make
+ - mkdir -p build1 && cd build1 && cmake .. && make && cd ..
+ - mkdir -p build2 && cd build2 && qmake ../framebuffer-vncserver.pro && make && cd ..
