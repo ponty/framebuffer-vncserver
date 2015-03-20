@@ -231,10 +231,11 @@ static void update_screen(void)
 
 void print_usage(char **argv)
 {
-	printf("%s [-k device] [-t device] [-h]\n"
-		"-k device: keyboard device node, default is /dev/input/event3\n"
-		"-t device: touch device node, default is /dev/input/event1\n"
-		"-h : print this help\n");
+    fprintf(stderr, "%s [-f device] [-p port] [-h]\n"
+			"-p port: VNC port, default is 5900\n"
+			"-f device: framebuffer device node, default is /dev/fb0\n"
+			"-h : print this help\n"
+			, *argv);
 }
 
 int main(int argc, char **argv)
