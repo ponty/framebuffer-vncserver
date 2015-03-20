@@ -169,7 +169,13 @@ static void update_screen(void)
 	c = (unsigned int *)fbbuf;         /* -> compare framebuffer */
 	r = (unsigned int *)vncbuf;        /* -> remote framebuffer  */
 
-	for (y = 0; y < scrinfo.yres; y++)
+    int multiplier = 1;
+    if (scrinfo.bits_per_pixel == 32)
+    {
+        // HACK: support for 32 bit
+        multiplier = 2;
+    }
+    for (y = 0; y < scrinfo.yres * multiplier; y++)
 	{
 		/* Compare every 2 pixels at a time, assuming that changes are likely
 		 * in pairs. */
