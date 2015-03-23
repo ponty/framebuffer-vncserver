@@ -54,15 +54,15 @@ static rfbScreenInfoPtr vncscr;
  * algorithm.  I will probably be later rewriting all of this. */
 static struct varblock_t
 {
-	int min_i;
-	int min_j;
-	int max_i;
-	int max_j;
-	int r_offset;
-	int g_offset;
-	int b_offset;
-	int rfb_xres;
-	int rfb_maxy;
+    int min_i;
+    int min_j;
+    int max_i;
+    int max_j;
+    int r_offset;
+    int g_offset;
+    int b_offset;
+    int rfb_xres;
+    int rfb_maxy;
 } varblock;
 
 /*****************************************************************************/
@@ -70,45 +70,45 @@ static struct varblock_t
 
 static void init_fb(void)
 {
-	size_t pixels;
-	size_t bytespp;
+    size_t pixels;
+    size_t bytespp;
 
     if ((fbfd = open(fb_device, O_RDONLY)) == -1)
-	{
+    {
         fprintf(stderr, "cannot open fb device %s\n", fb_device);
-		exit(EXIT_FAILURE);
-	}
+        exit(EXIT_FAILURE);
+    }
 
-	if (ioctl(fbfd, FBIOGET_VSCREENINFO, &scrinfo) != 0)
-	{
+    if (ioctl(fbfd, FBIOGET_VSCREENINFO, &scrinfo) != 0)
+    {
         fprintf(stderr, "ioctl error\n");
-		exit(EXIT_FAILURE);
-	}
+        exit(EXIT_FAILURE);
+    }
 
-	pixels = scrinfo.xres * scrinfo.yres;
-	bytespp = scrinfo.bits_per_pixel / 8;
+    pixels = scrinfo.xres * scrinfo.yres;
+    bytespp = scrinfo.bits_per_pixel / 8;
 
-	fprintf(stderr, "xres=%d, yres=%d, xresv=%d, yresv=%d, xoffs=%d, yoffs=%d, bpp=%d\n",
-	  (int)scrinfo.xres, (int)scrinfo.yres,
-	  (int)scrinfo.xres_virtual, (int)scrinfo.yres_virtual,
-	  (int)scrinfo.xoffset, (int)scrinfo.yoffset,
-	  (int)scrinfo.bits_per_pixel);
+    fprintf(stderr, "xres=%d, yres=%d, xresv=%d, yresv=%d, xoffs=%d, yoffs=%d, bpp=%d\n",
+            (int)scrinfo.xres, (int)scrinfo.yres,
+            (int)scrinfo.xres_virtual, (int)scrinfo.yres_virtual,
+            (int)scrinfo.xoffset, (int)scrinfo.yoffset,
+            (int)scrinfo.bits_per_pixel);
 
-	fbmmap = mmap(NULL, pixels * bytespp, PROT_READ, MAP_SHARED, fbfd, 0);
+    fbmmap = mmap(NULL, pixels * bytespp, PROT_READ, MAP_SHARED, fbfd, 0);
 
-	if (fbmmap == MAP_FAILED)
-	{
+    if (fbmmap == MAP_FAILED)
+    {
         fprintf(stderr, "mmap failed\n");
-		exit(EXIT_FAILURE);
-	}
+        exit(EXIT_FAILURE);
+    }
 }
 
 static void cleanup_fb(void)
 {
-	if(fbfd != -1)
-	{
-		close(fbfd);
-	}
+    if(fbfd != -1)
+    {
+        close(fbfd);
+    }
 }
 
 /*****************************************************************************/
@@ -117,40 +117,40 @@ static void init_fb_server(int argc, char **argv)
 {
     fprintf(stderr, "Initializing server...\n");
 
-	/* Allocate the VNC server buffer to be managed (not manipulated) by
-	 * libvncserver. */
-	vncbuf = calloc(scrinfo.xres * scrinfo.yres, scrinfo.bits_per_pixel / 8);
-	assert(vncbuf != NULL);
+    /* Allocate the VNC server buffer to be managed (not manipulated) by
+     * libvncserver. */
+    vncbuf = calloc(scrinfo.xres * scrinfo.yres, scrinfo.bits_per_pixel / 8);
+    assert(vncbuf != NULL);
 
-	/* Allocate the comparison buffer for detecting drawing updates from frame
-	 * to frame. */
-	fbbuf = calloc(scrinfo.xres * scrinfo.yres, scrinfo.bits_per_pixel / 8);
-	assert(fbbuf != NULL);
+    /* Allocate the comparison buffer for detecting drawing updates from frame
+     * to frame. */
+    fbbuf = calloc(scrinfo.xres * scrinfo.yres, scrinfo.bits_per_pixel / 8);
+    assert(fbbuf != NULL);
 
-	/* TODO: This assumes scrinfo.bits_per_pixel is 16. */
-	vncscr = rfbGetScreen(&argc, argv, scrinfo.xres, scrinfo.yres, 5, 2, (scrinfo.bits_per_pixel / 8));
-	assert(vncscr != NULL);
+    /* TODO: This assumes scrinfo.bits_per_pixel is 16. */
+    vncscr = rfbGetScreen(&argc, argv, scrinfo.xres, scrinfo.yres, 5, 2, (scrinfo.bits_per_pixel / 8));
+    assert(vncscr != NULL);
 
-	vncscr->desktopName = "framebuffer";
-	vncscr->frameBuffer = (char *)vncbuf;
-	vncscr->alwaysShared = TRUE;
-	vncscr->httpDir = NULL;
+    vncscr->desktopName = "framebuffer";
+    vncscr->frameBuffer = (char *)vncbuf;
+    vncscr->alwaysShared = TRUE;
+    vncscr->httpDir = NULL;
     vncscr->port = vnc_port;
 
-//	vncscr->kbdAddEvent = keyevent;
-//	vncscr->ptrAddEvent = ptrevent;
+    //	vncscr->kbdAddEvent = keyevent;
+    //	vncscr->ptrAddEvent = ptrevent;
 
-	rfbInitServer(vncscr);
+    rfbInitServer(vncscr);
 
-	/* Mark as dirty since we haven't sent any updates at all yet. */
-	rfbMarkRectAsModified(vncscr, 0, 0, scrinfo.xres, scrinfo.yres);
+    /* Mark as dirty since we haven't sent any updates at all yet. */
+    rfbMarkRectAsModified(vncscr, 0, 0, scrinfo.xres, scrinfo.yres);
 
-	/* No idea. */
-	varblock.r_offset = scrinfo.red.offset + scrinfo.red.length - 5;
-	varblock.g_offset = scrinfo.green.offset + scrinfo.green.length - 5;
-	varblock.b_offset = scrinfo.blue.offset + scrinfo.blue.length - 5;
-	varblock.rfb_xres = scrinfo.yres;
-	varblock.rfb_maxy = scrinfo.xres - 1;
+    /* No idea. */
+    varblock.r_offset = scrinfo.red.offset + scrinfo.red.length - 5;
+    varblock.g_offset = scrinfo.green.offset + scrinfo.green.length - 5;
+    varblock.b_offset = scrinfo.blue.offset + scrinfo.blue.length - 5;
+    varblock.rfb_xres = scrinfo.yres;
+    varblock.rfb_maxy = scrinfo.xres - 1;
 }
 
 /*****************************************************************************/
@@ -159,15 +159,15 @@ static void init_fb_server(int argc, char **argv)
 
 static void update_screen(void)
 {
-	unsigned int *f, *c, *r;
-	int x, y;
+    unsigned int *f, *c, *r;
+    int x, y;
 
-	varblock.min_i = varblock.min_j = 9999;
-	varblock.max_i = varblock.max_j = -1;
+    varblock.min_i = varblock.min_j = 9999;
+    varblock.max_i = varblock.max_j = -1;
 
-	f = (unsigned int *)fbmmap;        /* -> framebuffer         */
-	c = (unsigned int *)fbbuf;         /* -> compare framebuffer */
-	r = (unsigned int *)vncbuf;        /* -> remote framebuffer  */
+    f = (unsigned int *)fbmmap;        /* -> framebuffer         */
+    c = (unsigned int *)fbbuf;         /* -> compare framebuffer */
+    r = (unsigned int *)vncbuf;        /* -> remote framebuffer  */
 
     int multiplier = 1;
     if (scrinfo.bits_per_pixel == 32)
@@ -176,61 +176,61 @@ static void update_screen(void)
         multiplier = 2;
     }
     for (y = 0; y < (int)(scrinfo.yres * multiplier); y++)
-	{
-		/* Compare every 2 pixels at a time, assuming that changes are likely
-		 * in pairs. */
+    {
+        /* Compare every 2 pixels at a time, assuming that changes are likely
+         * in pairs. */
         for (x = 0; x < (int)scrinfo.xres; x += 2)
-		{
-			unsigned int pixel = *f;
+        {
+            unsigned int pixel = *f;
 
-			if (pixel != *c)
-			{
-				*c = pixel;
+            if (pixel != *c)
+            {
+                *c = pixel;
 
-				/* XXX: Undo the checkered pattern to test the efficiency
-				 * gain using hextile encoding. */
-				if (pixel == 0x18e320e4 || pixel == 0x20e418e3)
-					pixel = 0x18e318e3;
+                /* XXX: Undo the checkered pattern to test the efficiency
+                 * gain using hextile encoding. */
+                if (pixel == 0x18e320e4 || pixel == 0x20e418e3)
+                    pixel = 0x18e318e3;
 
-				*r = PIXEL_FB_TO_RFB(pixel,
-				  varblock.r_offset, varblock.g_offset, varblock.b_offset);
+                *r = PIXEL_FB_TO_RFB(pixel,
+                                     varblock.r_offset, varblock.g_offset, varblock.b_offset);
 
-				if (x < varblock.min_i)
-					varblock.min_i = x;
-				else
-				{
-					if (x > varblock.max_i)
-						varblock.max_i = x;
+                if (x < varblock.min_i)
+                    varblock.min_i = x;
+                else
+                {
+                    if (x > varblock.max_i)
+                        varblock.max_i = x;
 
-					if (y > varblock.max_j)
-						varblock.max_j = y;
-					else if (y < varblock.min_j)
-						varblock.min_j = y;
-				}
-			}
+                    if (y > varblock.max_j)
+                        varblock.max_j = y;
+                    else if (y < varblock.min_j)
+                        varblock.min_j = y;
+                }
+            }
 
-			f++, c++;
-			r++;
-		}
-	}
+            f++, c++;
+            r++;
+        }
+    }
 
-	if (varblock.min_i < 9999)
-	{
-		if (varblock.max_i < 0)
-			varblock.max_i = varblock.min_i;
+    if (varblock.min_i < 9999)
+    {
+        if (varblock.max_i < 0)
+            varblock.max_i = varblock.min_i;
 
-		if (varblock.max_j < 0)
-			varblock.max_j = varblock.min_j;
+        if (varblock.max_j < 0)
+            varblock.max_j = varblock.min_j;
 
-		fprintf(stderr, "Dirty page: %dx%d+%d+%d...\n",
-		  (varblock.max_i+2) - varblock.min_i, (varblock.max_j+1) - varblock.min_j,
-		  varblock.min_i, varblock.min_j);
+        fprintf(stderr, "Dirty page: %dx%d+%d+%d...\n",
+                (varblock.max_i+2) - varblock.min_i, (varblock.max_j+1) - varblock.min_j,
+                varblock.min_i, varblock.min_j);
 
-		rfbMarkRectAsModified(vncscr, varblock.min_i, varblock.min_j,
-		  varblock.max_i + 2, varblock.max_j + 1);
+        rfbMarkRectAsModified(vncscr, varblock.min_i, varblock.min_j,
+                              varblock.max_i + 2, varblock.max_j + 1);
 
-		rfbProcessEvents(vncscr, 10000);
-	}
+        rfbProcessEvents(vncscr, 10000);
+    }
 }
 
 /*****************************************************************************/
@@ -238,61 +238,61 @@ static void update_screen(void)
 void print_usage(char **argv)
 {
     fprintf(stderr, "%s [-f device] [-p port] [-h]\n"
-			"-p port: VNC port, default is 5900\n"
-			"-f device: framebuffer device node, default is /dev/fb0\n"
-			"-h : print this help\n"
-			, *argv);
+                    "-p port: VNC port, default is 5900\n"
+                    "-f device: framebuffer device node, default is /dev/fb0\n"
+                    "-h : print this help\n"
+            , *argv);
 }
 
 int main(int argc, char **argv)
 {
-	if(argc > 1)
-	{
-		int i=1;
-		while(i < argc)
-		{
-			if(*argv[i] == '-')
-			{
-				switch(*(argv[i] + 1))
-				{
-					case 'h':
-						print_usage(argv);
-						exit(0);
-						break;
-					case 'f':
-						i++;
-                        strcpy(fb_device, argv[i]);
-						break;
-					case 'p':
-						i++;
-                        vnc_port = atoi(argv[i]);
-						break;
-				}
-			}
-			i++;
-		}
-	}
+    if(argc > 1)
+    {
+        int i=1;
+        while(i < argc)
+        {
+            if(*argv[i] == '-')
+            {
+                switch(*(argv[i] + 1))
+                {
+                case 'h':
+                    print_usage(argv);
+                    exit(0);
+                    break;
+                case 'f':
+                    i++;
+                    strcpy(fb_device, argv[i]);
+                    break;
+                case 'p':
+                    i++;
+                    vnc_port = atoi(argv[i]);
+                    break;
+                }
+            }
+            i++;
+        }
+    }
 
     fprintf(stderr, "Initializing framebuffer device %s...\n", fb_device);
-	init_fb();
+    init_fb();
 
     fprintf(stderr, "Initializing VNC server:\n");
     fprintf(stderr, "	width:  %d\n", (int)scrinfo.xres);
     fprintf(stderr, "	height: %d\n", (int)scrinfo.yres);
     fprintf(stderr, "	bpp:    %d\n", (int)scrinfo.bits_per_pixel);
     fprintf(stderr, "	port:   %d\n", (int)vnc_port);
-	init_fb_server(argc, argv);
+    init_fb_server(argc, argv);
 
-	/* Implement our own event loop to detect changes in the framebuffer. */
-	while (1)
-	{
-		while (vncscr->clientHead == NULL)
-			rfbProcessEvents(vncscr, 100000);
+    /* Implement our own event loop to detect changes in the framebuffer. */
+    while (1)
+    {
+        while (vncscr->clientHead == NULL)
+            rfbProcessEvents(vncscr, 100000);
 
-		rfbProcessEvents(vncscr, 100000);
-		update_screen();
-	}
+        rfbProcessEvents(vncscr, 100000);
+        update_screen();
+    }
 
     fprintf(stderr, "Cleaning up...\n");
-	cleanup_fb();
+    cleanup_fb();
 }
