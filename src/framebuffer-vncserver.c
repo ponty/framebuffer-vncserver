@@ -175,11 +175,11 @@ static void update_screen(void)
         // HACK: support for 32 bit
         multiplier = 2;
     }
-    for (y = 0; y < scrinfo.yres * multiplier; y++)
+    for (y = 0; y < (int)(scrinfo.yres * multiplier); y++)
 	{
 		/* Compare every 2 pixels at a time, assuming that changes are likely
 		 * in pairs. */
-		for (x = 0; x < scrinfo.xres; x += 2)
+        for (x = 0; x < (int)scrinfo.xres; x += 2)
 		{
 			unsigned int pixel = *f;
 
