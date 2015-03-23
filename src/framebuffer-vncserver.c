@@ -39,14 +39,14 @@
 
 /*****************************************************************************/
 
-static char FB_DEVICE[256] = "/dev/fb0";
+static char fb_device[256] = "/dev/fb0";
 static struct fb_var_screeninfo scrinfo;
 static int fbfd = -1;
 static unsigned short int *fbmmap = MAP_FAILED;
 static unsigned short int *vncbuf;
 static unsigned short int *fbbuf;
 
-static int VNC_PORT = 5900;
+static int vnc_port = 5900;
 static rfbScreenInfoPtr vncscr;
 
 
@@ -73,9 +73,9 @@ static void init_fb(void)
 	size_t pixels;
 	size_t bytespp;
 
-	if ((fbfd = open(FB_DEVICE, O_RDONLY)) == -1)
+    if ((fbfd = open(fb_device, O_RDONLY)) == -1)
 	{
-        fprintf(stderr, "cannot open fb device %s\n", FB_DEVICE);
+        fprintf(stderr, "cannot open fb device %s\n", fb_device);
 		exit(EXIT_FAILURE);
 	}
 
@@ -135,7 +135,7 @@ static void init_fb_server(int argc, char **argv)
 	vncscr->frameBuffer = (char *)vncbuf;
 	vncscr->alwaysShared = TRUE;
 	vncscr->httpDir = NULL;
-	vncscr->port = VNC_PORT;
+    vncscr->port = vnc_port;
 
 //	vncscr->kbdAddEvent = keyevent;
 //	vncscr->ptrAddEvent = ptrevent;
@@ -261,11 +261,11 @@ int main(int argc, char **argv)
 						break;
 					case 'f':
 						i++;
-						strcpy(FB_DEVICE, argv[i]);
+                        strcpy(fb_device, argv[i]);
 						break;
 					case 'p':
 						i++;
-						VNC_PORT = atoi(argv[i]);
+                        vnc_port = atoi(argv[i]);
 						break;
 				}
 			}
@@ -273,14 +273,14 @@ int main(int argc, char **argv)
 		}
 	}
 
-    fprintf(stderr, "Initializing framebuffer device %s...\n", FB_DEVICE);
+    fprintf(stderr, "Initializing framebuffer device %s...\n", fb_device);
 	init_fb();
 
     fprintf(stderr, "Initializing VNC server:\n");
     fprintf(stderr, "	width:  %d\n", (int)scrinfo.xres);
     fprintf(stderr, "	height: %d\n", (int)scrinfo.yres);
     fprintf(stderr, "	bpp:    %d\n", (int)scrinfo.bits_per_pixel);
-    fprintf(stderr, "	port:   %d\n", (int)VNC_PORT);
+    fprintf(stderr, "	port:   %d\n", (int)vnc_port);
 	init_fb_server(argc, argv);
 
 	/* Implement our own event loop to detect changes in the framebuffer. */
