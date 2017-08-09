@@ -38,6 +38,8 @@
 #include "rfb/keysym.h"
 
 /*****************************************************************************/
+#define BITS_PER_SAMPLE     5
+#define SAMPLES_PER_PIXEL   2
 
 static char fb_device[256] = "/dev/fb0";
 static struct fb_var_screeninfo scrinfo;
@@ -133,7 +135,7 @@ static void init_fb_server(int argc, char **argv)
     assert(fbbuf != NULL);
 
     /* TODO: This assumes scrinfo.bits_per_pixel is 16. */
-    server = rfbGetScreen(&argc, argv, scrinfo.xres, scrinfo.yres, 5, 2, (scrinfo.bits_per_pixel / 8));
+    server = rfbGetScreen(&argc, argv, scrinfo.xres, scrinfo.yres, BITS_PER_SAMPLE, SAMPLES_PER_PIXEL, (scrinfo.bits_per_pixel / 8));
     assert(server != NULL);
 
     server->desktopName = "framebuffer";
@@ -151,16 +153,16 @@ static void init_fb_server(int argc, char **argv)
     rfbMarkRectAsModified(server, 0, 0, scrinfo.xres, scrinfo.yres);
 
     /* No idea. */
-    varblock.r_offset = scrinfo.red.offset + scrinfo.red.length - 5;
-    varblock.g_offset = scrinfo.green.offset + scrinfo.green.length - 5;
-    varblock.b_offset = scrinfo.blue.offset + scrinfo.blue.length - 5;
+    varblock.r_offset = scrinfo.red.offset + scrinfo.red.length - BITS_PER_SAMPLE;
+    varblock.g_offset = scrinfo.green.offset + scrinfo.green.length - BITS_PER_SAMPLE;
+    varblock.b_offset = scrinfo.blue.offset + scrinfo.blue.length - BITS_PER_SAMPLE;
     varblock.rfb_xres = scrinfo.yres;
     varblock.rfb_maxy = scrinfo.xres - 1;
 }
 
 /*****************************************************************************/
-
-#define PIXEL_FB_TO_RFB(p,r_offset,g_offset,b_offset) ((p>>r_offset)&0x1f001f) | (((p>>g_offset)&0x1f001f)<<5) | (((p>>b_offset)&0x1f001f)<<10)
+#define COLOR_MASK  0x1f001f
+#define PIXEL_FB_TO_RFB(p,r_offset,g_offset,b_offset) ((p>>r_offset)&COLOR_MASK) | (((p>>g_offset)&COLOR_MASK)<<BITS_PER_SAMPLE) | (((p>>b_offset)&COLOR_MASK)<<(2*BITS_PER_SAMPLE))
 
 static void update_screen(void)
 {
