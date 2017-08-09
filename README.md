@@ -2,7 +2,7 @@
 
 VNC server for Linux framebuffer devices.
 
-[![Travis](http://img.shields.io/travis/ponty/framebuffer-vncserver.svg)] (https://travis-ci.org/ponty/framebuffer-vncserver)
+[![Build Status](https://travis-ci.org/ponty/framebuffer-vncserver.svg?branch=master)](https://travis-ci.org/ponty/framebuffer-vncserver)
 
 The goal is to check remote embedded Linux systems without X, so only the remote display is implemented. 
 (no input, no file transfer,..)
