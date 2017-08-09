@@ -50,6 +50,7 @@ static unsigned short int *fbbuf;
 
 static int vnc_port = 5900;
 static rfbScreenInfoPtr server;
+static size_t bytespp;
 
 
 /* No idea, just copied from fbvncserver as part of the frame differerencing
@@ -73,7 +74,6 @@ static struct varblock_t
 static void init_fb(void)
 {
     size_t pixels;
-    size_t bytespp;
 
     if ((fbfd = open(fb_device, O_RDONLY)) == -1)
     {
@@ -126,16 +126,16 @@ static void init_fb_server(int argc, char **argv)
 
     /* Allocate the VNC server buffer to be managed (not manipulated) by
      * libvncserver. */
-    vncbuf = calloc(scrinfo.xres * scrinfo.yres, scrinfo.bits_per_pixel / 8);
+    vncbuf = calloc(scrinfo.xres * scrinfo.yres, bytespp);
     assert(vncbuf != NULL);
 
     /* Allocate the comparison buffer for detecting drawing updates from frame
      * to frame. */
-    fbbuf = calloc(scrinfo.xres * scrinfo.yres, scrinfo.bits_per_pixel / 8);
+    fbbuf = calloc(scrinfo.xres * scrinfo.yres, bytespp);
     assert(fbbuf != NULL);
 
     /* TODO: This assumes scrinfo.bits_per_pixel is 16. */
-    server = rfbGetScreen(&argc, argv, scrinfo.xres, scrinfo.yres, BITS_PER_SAMPLE, SAMPLES_PER_PIXEL, (scrinfo.bits_per_pixel / 8));
+    server = rfbGetScreen(&argc, argv, scrinfo.xres, scrinfo.yres, BITS_PER_SAMPLE, SAMPLES_PER_PIXEL, bytespp);
     assert(server != NULL);
 
     server->desktopName = "framebuffer";
