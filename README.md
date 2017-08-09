@@ -8,11 +8,10 @@ The goal is to check remote embedded Linux systems without X, so only the remote
 (no input, no file transfer,..)
 
 The code is based on a LibVNC example for Android:
-https://github.com/LibVNC/libvncserver/blob/master/examples/android/jni/fbvncserver.c
+https://github.com/LibVNC/libvncserver/blob/master/examples/androidvncserver.c
 
 All input handling was removed, command-line parameters port and fbdev were added.
-In 32 bit color only half of the screen was displayed, so I hacked the code to show the full screen,
-but I don't know how it works.
+32 bit color support was added.
 
 ### build
 
