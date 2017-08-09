@@ -35,7 +35,7 @@
 
 /* libvncserver */
 #include "rfb/rfb.h"
-#include "rfb/keysym.h"
+//#include "rfb/keysym.h"
 
 /*****************************************************************************/
 #define BITS_PER_SAMPLE     5
