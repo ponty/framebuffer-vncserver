@@ -93,6 +93,11 @@ static void init_fb(void)
             (int)scrinfo.xres_virtual, (int)scrinfo.yres_virtual,
             (int)scrinfo.xoffset, (int)scrinfo.yoffset,
             (int)scrinfo.bits_per_pixel);
+    fprintf(stderr, "offset:length red=%d:%d green=%d:%d blue=%d:%d \n",
+            (int)scrinfo.red.offset, (int)scrinfo.red.length,
+            (int)scrinfo.green.offset, (int)scrinfo.green.length,
+            (int)scrinfo.blue.offset, (int)scrinfo.blue.length
+            );
 
     fbmmap = mmap(NULL, pixels * bytespp, PROT_READ, MAP_SHARED, fbfd, 0);
 
