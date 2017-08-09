@@ -187,11 +187,12 @@ static void update_screen(void)
             {
                 *c = pixel;
 
+#if 0
                 /* XXX: Undo the checkered pattern to test the efficiency
                  * gain using hextile encoding. */
                 if (pixel == 0x18e320e4 || pixel == 0x20e418e3)
                     pixel = 0x18e318e3;
-
+#endif
                 *r = PIXEL_FB_TO_RFB(pixel,
                                      varblock.r_offset, varblock.g_offset, varblock.b_offset);
 
