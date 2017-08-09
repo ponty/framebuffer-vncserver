@@ -176,10 +176,12 @@ static void update_screen(void)
 
     int xstep = 4/bytespp;
 
-    for (int y = 0; y < (int)scrinfo.yres; y++)
+    int y;
+    for (y = 0; y < (int)scrinfo.yres; y++)
     {
         /* Compare every 1/2/4 pixels at a time */
-        for (int x = 0; x < (int)scrinfo.xres; x += xstep)
+        int x;
+        for (x = 0; x < (int)scrinfo.xres; x += xstep)
         {
             uint32_t pixel = *f;
 
