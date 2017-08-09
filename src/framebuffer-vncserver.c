@@ -166,15 +166,12 @@ static void init_fb_server(int argc, char **argv)
 
 static void update_screen(void)
 {
-    unsigned int *f, *c, *r;
-    int x, y;
-
     varblock.min_i = varblock.min_j = 9999;
     varblock.max_i = varblock.max_j = -1;
 
-    f = (unsigned int *)fbmmap;        /* -> framebuffer         */
-    c = (unsigned int *)fbbuf;         /* -> compare framebuffer */
-    r = (unsigned int *)vncbuf;        /* -> remote framebuffer  */
+    uint32_t *f = (uint32_t *)fbmmap;        /* -> framebuffer         */
+    uint32_t *c = (uint32_t *)fbbuf;         /* -> compare framebuffer */
+    uint32_t *r = (uint32_t *)vncbuf;        /* -> remote framebuffer  */
 
     int multiplier = 1;
     if (scrinfo.bits_per_pixel == 32)
@@ -182,11 +179,11 @@ static void update_screen(void)
         // HACK: support for 32 bit
         multiplier = 2;
     }
-    for (y = 0; y < (int)(scrinfo.yres * multiplier); y++)
+    for (int y = 0; y < (int)(scrinfo.yres * multiplier); y++)
     {
         /* Compare every 2 pixels at a time, assuming that changes are likely
          * in pairs. */
-        for (x = 0; x < (int)scrinfo.xres; x += 2)
+        for (int x = 0; x < (int)scrinfo.xres; x += 2)
         {
             unsigned int pixel = *f;
 
