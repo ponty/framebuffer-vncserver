@@ -47,7 +47,7 @@ static unsigned short int *vncbuf;
 static unsigned short int *fbbuf;
 
 static int vnc_port = 5900;
-static rfbScreenInfoPtr vncscr;
+static rfbScreenInfoPtr server;
 
 
 /* No idea, just copied from fbvncserver as part of the frame differerencing
@@ -133,22 +133,22 @@ static void init_fb_server(int argc, char **argv)
     assert(fbbuf != NULL);
 
     /* TODO: This assumes scrinfo.bits_per_pixel is 16. */
-    vncscr = rfbGetScreen(&argc, argv, scrinfo.xres, scrinfo.yres, 5, 2, (scrinfo.bits_per_pixel / 8));
-    assert(vncscr != NULL);
+    server = rfbGetScreen(&argc, argv, scrinfo.xres, scrinfo.yres, 5, 2, (scrinfo.bits_per_pixel / 8));
+    assert(server != NULL);
 
-    vncscr->desktopName = "framebuffer";
-    vncscr->frameBuffer = (char *)vncbuf;
-    vncscr->alwaysShared = TRUE;
-    vncscr->httpDir = NULL;
-    vncscr->port = vnc_port;
+    server->desktopName = "framebuffer";
+    server->frameBuffer = (char *)vncbuf;
+    server->alwaysShared = TRUE;
+    server->httpDir = NULL;
+    server->port = vnc_port;
 
-    //	vncscr->kbdAddEvent = keyevent;
-    //	vncscr->ptrAddEvent = ptrevent;
+    //	server->kbdAddEvent = keyevent;
+    //	server->ptrAddEvent = ptrevent;
 
-    rfbInitServer(vncscr);
+    rfbInitServer(server);
 
     /* Mark as dirty since we haven't sent any updates at all yet. */
-    rfbMarkRectAsModified(vncscr, 0, 0, scrinfo.xres, scrinfo.yres);
+    rfbMarkRectAsModified(server, 0, 0, scrinfo.xres, scrinfo.yres);
 
     /* No idea. */
     varblock.r_offset = scrinfo.red.offset + scrinfo.red.length - 5;
@@ -233,10 +233,10 @@ static void update_screen(void)
                 (varblock.max_i+2) - varblock.min_i, (varblock.max_j+1) - varblock.min_j,
                 varblock.min_i, varblock.min_j);
 
-        rfbMarkRectAsModified(vncscr, varblock.min_i, varblock.min_j,
+        rfbMarkRectAsModified(server, varblock.min_i, varblock.min_j,
                               varblock.max_i + 2, varblock.max_j + 1);
 
-        rfbProcessEvents(vncscr, 10000);
+        rfbProcessEvents(server, 10000);
     }
 }
 
@@ -293,10 +293,10 @@ int main(int argc, char **argv)
     /* Implement our own event loop to detect changes in the framebuffer. */
     while (1)
     {
-        while (vncscr->clientHead == NULL)
-            rfbProcessEvents(vncscr, 100000);
+        while (server->clientHead == NULL)
+            rfbProcessEvents(server, 100000);
 
-        rfbProcessEvents(vncscr, 100000);
+        rfbProcessEvents(server, 100000);
         update_screen();
     }
 
