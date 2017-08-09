@@ -179,7 +179,7 @@ static void update_screen(void)
          * in pairs. */
         for (int x = 0; x < (int)scrinfo.xres; x += 2)
         {
-            unsigned int pixel = *f;
+            uint32_t pixel = *f;
 
             if (pixel != *c)
             {
