@@ -155,7 +155,7 @@ static void init_fb_server(int argc, char **argv)
 
 /*****************************************************************************/
 
-#define PIXEL_FB_TO_RFB(p,r,g,b) ((p>>r)&0x1f001f)|(((p>>g)&0x1f001f)<<5)|(((p>>b)&0x1f001f)<<10)
+#define PIXEL_FB_TO_RFB(p,r_offset,g_offset,b_offset) ((p>>r_offset)&0x1f001f) | (((p>>g_offset)&0x1f001f)<<5) | (((p>>b_offset)&0x1f001f)<<10)
 
 static void update_screen(void)
 {
@@ -210,7 +210,8 @@ static void update_screen(void)
                 }
             }
 
-            f++, c++;
+            f++;
+            c++;
             r++;
         }
     }
