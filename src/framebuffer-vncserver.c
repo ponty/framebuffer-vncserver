@@ -174,11 +174,12 @@ static void update_screen(void)
     uint32_t *c = (uint32_t *)fbbuf;         /* -> compare framebuffer */
     uint32_t *r = (uint32_t *)vncbuf;        /* -> remote framebuffer  */
 
+    int xstep = 4/bytespp;
+
     for (int y = 0; y < (int)scrinfo.yres; y++)
     {
-        /* Compare every 2 pixels at a time, assuming that changes are likely
-         * in pairs. */
-        for (int x = 0; x < (int)scrinfo.xres; x += 2)
+        /* Compare every 1/2/4 pixels at a time */
+        for (int x = 0; x < (int)scrinfo.xres; x += xstep)
         {
             uint32_t pixel = *f;
 
