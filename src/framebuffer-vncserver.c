@@ -38,6 +38,8 @@
 //#include "rfb/keysym.h"
 
 /*****************************************************************************/
+//#define LOG_FPS
+
 #define BITS_PER_SAMPLE     5
 #define SAMPLES_PER_PIXEL   2
 
@@ -160,6 +162,21 @@ static void init_fb_server(int argc, char **argv)
     varblock.rfb_maxy = scrinfo.xres - 1;
 }
 
+// sec
+#define LOG_TIME    5
+
+int timeToLogFPS() {
+    static struct timeval now={0,0}, then={0,0};
+    double elapsed, dnow, dthen;
+    gettimeofday(&now,NULL);
+    dnow  = now.tv_sec  + (now.tv_usec /1000000.0);
+    dthen = then.tv_sec + (then.tv_usec/1000000.0);
+    elapsed = dnow - dthen;
+    if (elapsed > LOG_TIME)
+      memcpy((char *)&then, (char *)&now, sizeof(struct timeval));
+    return elapsed > LOG_TIME;
+}
+
 /*****************************************************************************/
 //#define COLOR_MASK  0x1f001f
 #define COLOR_MASK  (((1 << BITS_PER_SAMPLE) << 1) - 1)
@@ -167,6 +184,17 @@ static void init_fb_server(int argc, char **argv)
 
 static void update_screen(void)
 {
+#ifdef LOG_FPS
+    static int frames = 0;
+    frames++;
+    if(timeToLogFPS())
+    {
+        double fps = frames / LOG_TIME;
+        fprintf(stderr, "  fps: %f\n", fps);
+        frames = 0;
+    }
+#endif
+
     varblock.min_i = varblock.min_j = 9999;
     varblock.max_i = varblock.max_j = -1;
 
