@@ -4,9 +4,14 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += src/framebuffer-vncserver.c
+SOURCES += src/keyboard.c
+SOURCES += src/touch.c
 
 include(deployment.pri)
 qtcAddDeployment()
 
 
 LIBS += -lvncserver
+
+DISTFILES += \
+    README.md

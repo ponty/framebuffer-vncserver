@@ -37,6 +37,9 @@
 #include "rfb/rfb.h"
 //#include "rfb/keysym.h"
 
+#include "touch.h"
+//#include "keyboard.h"
+
 /*****************************************************************************/
 //#define LOG_FPS
 
@@ -44,6 +47,7 @@
 #define SAMPLES_PER_PIXEL   2
 
 static char fb_device[256] = "/dev/fb0";
+
 static struct fb_var_screeninfo scrinfo;
 static int fbfd = -1;
 static unsigned short int *fbmmap = MAP_FAILED;
@@ -120,6 +124,59 @@ static void cleanup_fb(void)
     }
 }
 
+#if 0
+static void keyevent(rfbBool down, rfbKeySym key, rfbClientPtr cl)
+{
+    int scancode;
+
+    debug_print("Got keysym: %04x (down=%d)\n", (unsigned int)key, (int)down);
+
+    if ((scancode = keysym2scancode(down, key, cl)))
+    {
+        injectKeyEvent(scancode, down);
+    }
+}
+#endif
+
+static void ptrevent(int buttonMask, int x, int y, rfbClientPtr cl)
+{
+    /* Indicates either pointer movement or a pointer button press or release. The pointer is
+now at (x-position, y-position), and the current state of buttons 1 to 8 are represented
+by bits 0 to 7 of button-mask respectively, 0 meaning up, 1 meaning down (pressed).
+On a conventional mouse, buttons 1, 2 and 3 correspond to the left, middle and right
+buttons on the mouse. On a wheel mouse, each step of the wheel upwards is represented
+by a press and release of button 4, and each step downwards is represented by
+a press and release of button 5.
+  From: http://www.vislab.usyd.edu.au/blogs/index.php/2009/05/22/an-headerless-indexed-protocol-for-input-1?blog=61 */
+
+    //debug_print("Got ptrevent: %04x (x=%d, y=%d)\n", buttonMask, x, y);
+    // Simulate left mouse event as touch event
+    static int pressed = 0;
+    if(buttonMask & 1)
+    {
+        if (pressed == 1)
+        {
+            // move
+            injectTouchEvent(-1, x, y, &scrinfo);
+        }
+        else
+        {
+            // press
+            pressed = 1;
+            injectTouchEvent(1, x, y, &scrinfo);
+        }
+    }
+    if(buttonMask == 0)
+    {
+        if (pressed == 1)
+        {
+            // release
+            pressed = 0;
+            injectTouchEvent(0, x, y, &scrinfo);
+        }
+    }
+}
+
 /*****************************************************************************/
 
 static void init_fb_server(int argc, char **argv)
@@ -147,7 +204,7 @@ static void init_fb_server(int argc, char **argv)
     server->port = vnc_port;
 
     //	server->kbdAddEvent = keyevent;
-    //	server->ptrAddEvent = ptrevent;
+    server->ptrAddEvent = ptrevent;
 
     rfbInitServer(server);
 
@@ -202,6 +259,12 @@ static void update_screen(void)
     uint32_t *c = (uint32_t *)fbbuf;         /* -> compare framebuffer */
     uint32_t *r = (uint32_t *)vncbuf;        /* -> remote framebuffer  */
 
+    int size = scrinfo.xres * scrinfo.yres * bytespp;
+    if(memcmp ( fbmmap, fbbuf, size )!=0)
+    {
+//        memcpy(fbbuf, fbmmap, size);
+
+
     int xstep = 4/bytespp;
 
     int y;
@@ -245,6 +308,7 @@ static void update_screen(void)
             r++;
         }
     }
+    }
 
     if (varblock.min_i < 9999)
     {
@@ -266,6 +330,8 @@ static void update_screen(void)
 }
 
 /*****************************************************************************/
+
+
 
 void print_usage(char **argv)
 {
@@ -307,6 +373,8 @@ int main(int argc, char **argv)
 
     fprintf(stderr, "Initializing framebuffer device %s...\n", fb_device);
     init_fb();
+//    init_kbd();
+    init_touch();
 
     fprintf(stderr, "Initializing VNC server:\n");
     fprintf(stderr, "	width:  %d\n", (int)scrinfo.xres);
@@ -327,4 +395,6 @@ int main(int argc, char **argv)
 
     fprintf(stderr, "Cleaning up...\n");
     cleanup_fb();
+//    cleanup_kbd();
+    cleanup_touch();
 }
