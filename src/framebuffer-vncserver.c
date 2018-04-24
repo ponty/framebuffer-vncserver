@@ -48,6 +48,7 @@
 #define SAMPLES_PER_PIXEL   2
 
 static char fb_device[256] = "/dev/fb0";
+static char touch_device[256] = "";
 
 static struct fb_var_screeninfo scrinfo;
 static int fbfd = -1;
@@ -338,7 +339,8 @@ void print_usage(char **argv)
 {
     info_print("%s [-f device] [-p port] [-h]\n"
                     "-p port: VNC port, default is 5900\n"
-                    "-f device: framebuffer device node, default is /dev/fb0\n"
+               "-f device: framebuffer device node, default is /dev/fb0\n"
+               "-t device: touchscreen device node (example:/dev/input/event2)\n"
                     "-h : print this help\n"
             , *argv);
 }
@@ -362,6 +364,10 @@ int main(int argc, char **argv)
                     i++;
                     strcpy(fb_device, argv[i]);
                     break;
+                case 't':
+                    i++;
+                    strcpy(touch_device, argv[i]);
+                    break;
                 case 'p':
                     i++;
                     vnc_port = atoi(argv[i]);
@@ -375,7 +381,16 @@ int main(int argc, char **argv)
     info_print("Initializing framebuffer device %s...\n", fb_device);
     init_fb();
 //    init_kbd();
-    init_touch();
+
+    if(strlen(touch_device) > 0)
+    {
+        // init touch only if there is a touch device defined
+        init_touch(touch_device);
+    }
+    else
+    {
+        info_print("No touch device\n");
+    }
 
     info_print("Initializing VNC server:\n");
     info_print("	width:  %d\n", (int)scrinfo.xres);

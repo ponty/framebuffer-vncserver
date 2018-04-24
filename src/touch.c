@@ -22,19 +22,19 @@
 #include "touch.h"
 #include "logging.h"
 
-static char TOUCH_DEVICE[256] = "/dev/input/event2";
+//static char TOUCH_DEVICE[256] = "/dev/input/event2";
 static int touchfd = -1;
 
 static int xmin, xmax;
 static int ymin, ymax;
 
-void init_touch()
+void init_touch(const char* touch_device)
 {
-    info_print("Initializing touch device %s ...\n", TOUCH_DEVICE);
+    info_print("Initializing touch device %s ...\n", touch_device);
     struct input_absinfo info;
-    if((touchfd = open(TOUCH_DEVICE, O_RDWR)) == -1)
+    if((touchfd = open(touch_device, O_RDWR)) == -1)
     {
-        error_print("cannot open touch device %s\n", TOUCH_DEVICE);
+        error_print("cannot open touch device %s\n", touch_device);
         exit(EXIT_FAILURE);
     }
     // Get the Range of X and Y
