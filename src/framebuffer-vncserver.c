@@ -39,6 +39,7 @@
 
 #include "touch.h"
 //#include "keyboard.h"
+#include "logging.h"
 
 /*****************************************************************************/
 //#define LOG_FPS
@@ -83,25 +84,25 @@ static void init_fb(void)
 
     if ((fbfd = open(fb_device, O_RDONLY)) == -1)
     {
-        fprintf(stderr, "cannot open fb device %s\n", fb_device);
+        error_print("cannot open fb device %s\n", fb_device);
         exit(EXIT_FAILURE);
     }
 
     if (ioctl(fbfd, FBIOGET_VSCREENINFO, &scrinfo) != 0)
     {
-        fprintf(stderr, "ioctl error\n");
+        error_print("ioctl error\n");
         exit(EXIT_FAILURE);
     }
 
     pixels = scrinfo.xres * scrinfo.yres;
     bytespp = scrinfo.bits_per_pixel / 8;
 
-    fprintf(stderr, "xres=%d, yres=%d, xresv=%d, yresv=%d, xoffs=%d, yoffs=%d, bpp=%d\n",
+    info_print("xres=%d, yres=%d, xresv=%d, yresv=%d, xoffs=%d, yoffs=%d, bpp=%d\n",
             (int)scrinfo.xres, (int)scrinfo.yres,
             (int)scrinfo.xres_virtual, (int)scrinfo.yres_virtual,
             (int)scrinfo.xoffset, (int)scrinfo.yoffset,
             (int)scrinfo.bits_per_pixel);
-    fprintf(stderr, "offset:length red=%d:%d green=%d:%d blue=%d:%d \n",
+    info_print("offset:length red=%d:%d green=%d:%d blue=%d:%d \n",
             (int)scrinfo.red.offset, (int)scrinfo.red.length,
             (int)scrinfo.green.offset, (int)scrinfo.green.length,
             (int)scrinfo.blue.offset, (int)scrinfo.blue.length
@@ -111,7 +112,7 @@ static void init_fb(void)
 
     if (fbmmap == MAP_FAILED)
     {
-        fprintf(stderr, "mmap failed\n");
+        error_print("mmap failed\n");
         exit(EXIT_FAILURE);
     }
 }
@@ -181,7 +182,7 @@ a press and release of button 5.
 
 static void init_fb_server(int argc, char **argv)
 {
-    fprintf(stderr, "Initializing server...\n");
+    info_print("Initializing server...\n");
 
     /* Allocate the VNC server buffer to be managed (not manipulated) by
      * libvncserver. */
@@ -247,7 +248,7 @@ static void update_screen(void)
     if(timeToLogFPS())
     {
         double fps = frames / LOG_TIME;
-        fprintf(stderr, "  fps: %f\n", fps);
+        info_print("  fps: %f\n", fps);
         frames = 0;
     }
 #endif
@@ -318,7 +319,7 @@ static void update_screen(void)
         if (varblock.max_j < 0)
             varblock.max_j = varblock.min_j;
 
-        fprintf(stderr, "Dirty page: %dx%d+%d+%d...\n",
+        debug_print("Dirty page: %dx%d+%d+%d...\n",
                 (varblock.max_i+2) - varblock.min_i, (varblock.max_j+1) - varblock.min_j,
                 varblock.min_i, varblock.min_j);
 
@@ -335,7 +336,7 @@ static void update_screen(void)
 
 void print_usage(char **argv)
 {
-    fprintf(stderr, "%s [-f device] [-p port] [-h]\n"
+    info_print("%s [-f device] [-p port] [-h]\n"
                     "-p port: VNC port, default is 5900\n"
                     "-f device: framebuffer device node, default is /dev/fb0\n"
                     "-h : print this help\n"
@@ -371,16 +372,16 @@ int main(int argc, char **argv)
         }
     }
 
-    fprintf(stderr, "Initializing framebuffer device %s...\n", fb_device);
+    info_print("Initializing framebuffer device %s...\n", fb_device);
     init_fb();
 //    init_kbd();
     init_touch();
 
-    fprintf(stderr, "Initializing VNC server:\n");
-    fprintf(stderr, "	width:  %d\n", (int)scrinfo.xres);
-    fprintf(stderr, "	height: %d\n", (int)scrinfo.yres);
-    fprintf(stderr, "	bpp:    %d\n", (int)scrinfo.bits_per_pixel);
-    fprintf(stderr, "	port:   %d\n", (int)vnc_port);
+    info_print("Initializing VNC server:\n");
+    info_print("	width:  %d\n", (int)scrinfo.xres);
+    info_print("	height: %d\n", (int)scrinfo.yres);
+    info_print("	bpp:    %d\n", (int)scrinfo.bits_per_pixel);
+    info_print("	port:   %d\n", (int)vnc_port);
     init_fb_server(argc, argv);
 
     /* Implement our own event loop to detect changes in the framebuffer. */
@@ -393,7 +394,7 @@ int main(int argc, char **argv)
         update_screen();
     }
 
-    fprintf(stderr, "Cleaning up...\n");
+    info_print("Cleaning up...\n");
     cleanup_fb();
 //    cleanup_kbd();
     cleanup_touch();

@@ -20,6 +20,7 @@
 #include "rfb/rfb.h"
 
 #include "touch.h"
+#include "logging.h"
 
 static char TOUCH_DEVICE[256] = "/dev/input/event2";
 static int touchfd = -1;
@@ -29,28 +30,28 @@ static int ymin, ymax;
 
 void init_touch()
 {
-    fprintf(stderr, "Initializing touch device %s ...\n", TOUCH_DEVICE);
+    info_print("Initializing touch device %s ...\n", TOUCH_DEVICE);
     struct input_absinfo info;
     if((touchfd = open(TOUCH_DEVICE, O_RDWR)) == -1)
     {
-        fprintf(stderr, "cannot open touch device %s\n", TOUCH_DEVICE);
+        error_print("cannot open touch device %s\n", TOUCH_DEVICE);
         exit(EXIT_FAILURE);
     }
     // Get the Range of X and Y
     if(ioctl(touchfd, EVIOCGABS(ABS_X), &info)) {
-        fprintf(stderr, "cannot get ABS_X info, %s\n", strerror(errno));
+        error_print("cannot get ABS_X info, %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
     xmin = info.minimum;
     xmax = info.maximum;
     if(ioctl(touchfd, EVIOCGABS(ABS_Y), &info)) {
-        fprintf(stderr, "cannot get ABS_Y, %s\n", strerror(errno));
+        error_print("cannot get ABS_Y, %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
     ymin = info.minimum;
     ymax = info.maximum;
 
-    fprintf(stderr, "  x:(%d %d)  y:(%d %d) \n", xmin, xmax, ymin, ymax );
+    info_print("  x:(%d %d)  y:(%d %d) \n", xmin, xmax, ymin, ymax );
 }
 
 void cleanup_touch()
@@ -86,7 +87,7 @@ void injectTouchEvent(int down, int x, int y, struct fb_var_screeninfo* scrinfo)
         ev.value = down;
         if(write(touchfd, &ev, sizeof(ev)) < 0)
         {
-            fprintf(stderr, "write event failed, %s\n", strerror(errno));
+            error_print("write event failed, %s\n", strerror(errno));
         }
     }
 
@@ -97,7 +98,7 @@ void injectTouchEvent(int down, int x, int y, struct fb_var_screeninfo* scrinfo)
     ev.value = x;
     if(write(touchfd, &ev, sizeof(ev)) < 0)
     {
-        fprintf(stderr, "write event failed, %s\n", strerror(errno));
+        error_print("write event failed, %s\n", strerror(errno));
     }
 
     // Then send the Y
@@ -107,7 +108,7 @@ void injectTouchEvent(int down, int x, int y, struct fb_var_screeninfo* scrinfo)
     ev.value = y;
     if(write(touchfd, &ev, sizeof(ev)) < 0)
     {
-        fprintf(stderr, "write event failed, %s\n", strerror(errno));
+        error_print("write event failed, %s\n", strerror(errno));
     }
 
     // Finally send the SYN
@@ -117,8 +118,8 @@ void injectTouchEvent(int down, int x, int y, struct fb_var_screeninfo* scrinfo)
     ev.value = 0;
     if(write(touchfd, &ev, sizeof(ev)) < 0)
     {
-        fprintf(stderr, "write event failed, %s\n", strerror(errno));
+        error_print("write event failed, %s\n", strerror(errno));
     }
 
-    fprintf(stderr, "injectTouchEvent (screen(%d,%d) -> touch(%d,%d), down=%d)\n", xin , yin, x , y, down);
+    debug_print("injectTouchEvent (screen(%d,%d) -> touch(%d,%d), down=%d)\n", xin , yin, x , y, down);
 }

@@ -23,16 +23,17 @@
 //#include "rfb/keysym.h"
 
 #include "keyboard.h"
+#include "logging.h"
 
 static char KBD_DEVICE[256] = "/dev/input/event1";
 static int kbdfd = -1;
 
 void init_kbd()
 {
-    fprintf(stderr, "Initializing keyboard device %s ...\n", KBD_DEVICE);
+    info_print("Initializing keyboard device %s ...\n", KBD_DEVICE);
     if((kbdfd = open(KBD_DEVICE, O_RDWR)) == -1)
     {
-        fprintf(stderr, "cannot open kbd device %s\n", KBD_DEVICE);
+        error_print("cannot open kbd device %s\n", KBD_DEVICE);
         exit(EXIT_FAILURE);
     }
 }
@@ -55,10 +56,10 @@ void injectKeyEvent(uint16_t code, uint16_t value)
     ev.value = value;
     if(write(kbdfd, &ev, sizeof(ev)) < 0)
     {
-        fprintf(stderr, "write event failed, %s\n", strerror(errno));
+        error_print("write event failed, %s\n", strerror(errno));
     }
 
-    fprintf(stderr, "injectKey (%d, %d)\n", code , value);
+    debug_print("injectKey (%d, %d)\n", code , value);
 }
 
 int keysym2scancode(rfbBool down, rfbKeySym key, rfbClientPtr cl)
