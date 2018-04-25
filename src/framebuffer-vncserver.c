@@ -291,6 +291,16 @@ static void update_screen(void)
 #endif
                 *r = PIXEL_FB_TO_RFB(pixel,
                                      varblock.r_offset, varblock.g_offset, varblock.b_offset);
+                if(bytespp==2)
+                {
+                    uint32_t high_pixel = (0xffff0000 & pixel) >> 16;
+                    uint32_t high_r = PIXEL_FB_TO_RFB(high_pixel, varblock.r_offset, varblock.g_offset, varblock.b_offset);
+                    *r |=  (0xffff & high_r) << 16;
+                }
+                else
+                {
+                    // TODO
+                }
 
                 if (x < varblock.min_i)
                     varblock.min_i = x;
