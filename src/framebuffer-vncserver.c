@@ -98,12 +98,12 @@ static void init_fb(void)
     pixels = scrinfo.xres * scrinfo.yres;
     bytespp = scrinfo.bits_per_pixel / 8;
 
-    info_print("xres=%d, yres=%d, xresv=%d, yresv=%d, xoffs=%d, yoffs=%d, bpp=%d\n",
+    info_print("  xres=%d, yres=%d, xresv=%d, yresv=%d, xoffs=%d, yoffs=%d, bpp=%d\n",
             (int)scrinfo.xres, (int)scrinfo.yres,
             (int)scrinfo.xres_virtual, (int)scrinfo.yres_virtual,
             (int)scrinfo.xoffset, (int)scrinfo.yoffset,
             (int)scrinfo.bits_per_pixel);
-    info_print("offset:length red=%d:%d green=%d:%d blue=%d:%d \n",
+    info_print("  offset:length red=%d:%d green=%d:%d blue=%d:%d \n",
             (int)scrinfo.red.offset, (int)scrinfo.red.length,
             (int)scrinfo.green.offset, (int)scrinfo.green.length,
             (int)scrinfo.blue.offset, (int)scrinfo.blue.length
@@ -239,7 +239,8 @@ int timeToLogFPS() {
 /*****************************************************************************/
 //#define COLOR_MASK  0x1f001f
 #define COLOR_MASK  (((1 << BITS_PER_SAMPLE) << 1) - 1)
-#define PIXEL_FB_TO_RFB(p,r_offset,g_offset,b_offset) ((p>>r_offset)&COLOR_MASK) | (((p>>g_offset)&COLOR_MASK)<<BITS_PER_SAMPLE) | (((p>>b_offset)&COLOR_MASK)<<(2*BITS_PER_SAMPLE))
+#define PIXEL_FB_TO_RFB(p,r_offset,g_offset,b_offset) \
+    ((p>>r_offset)&COLOR_MASK) | (((p>>g_offset)&COLOR_MASK)<<BITS_PER_SAMPLE) | (((p>>b_offset)&COLOR_MASK)<<(2*BITS_PER_SAMPLE))
 
 static void update_screen(void)
 {
