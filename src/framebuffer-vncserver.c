@@ -181,7 +181,7 @@ a press and release of button 5.
 
 /*****************************************************************************/
 
-static void init_fb_server(int argc, char **argv)
+static void init_fb_server(int argc, char **argv, rfbBool enable_touch)
 {
     info_print("Initializing server...\n");
 
@@ -206,7 +206,10 @@ static void init_fb_server(int argc, char **argv)
     server->port = vnc_port;
 
     //	server->kbdAddEvent = keyevent;
-    server->ptrAddEvent = ptrevent;
+    if(enable_touch)
+    {
+        server->ptrAddEvent = ptrevent;
+    }
 
     rfbInitServer(server);
 
@@ -393,10 +396,12 @@ int main(int argc, char **argv)
     init_fb();
 //    init_kbd();
 
+    rfbBool enable_touch = FALSE;
     if(strlen(touch_device) > 0)
     {
         // init touch only if there is a touch device defined
         init_touch(touch_device);
+        enable_touch = TRUE;
     }
     else
     {
@@ -408,7 +413,7 @@ int main(int argc, char **argv)
     info_print("	height: %d\n", (int)scrinfo.yres);
     info_print("	bpp:    %d\n", (int)scrinfo.bits_per_pixel);
     info_print("	port:   %d\n", (int)vnc_port);
-    init_fb_server(argc, argv);
+    init_fb_server(argc, argv, enable_touch);
 
     /* Implement our own event loop to detect changes in the framebuffer. */
     while (1)
