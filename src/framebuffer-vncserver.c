@@ -400,8 +400,8 @@ int main(int argc, char **argv)
     if(strlen(touch_device) > 0)
     {
         // init touch only if there is a touch device defined
-        init_touch(touch_device);
-        enable_touch = TRUE;
+        int ret = init_touch(touch_device);
+        enable_touch = (ret>0);
     }
     else
     {

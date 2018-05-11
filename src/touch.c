@@ -28,30 +28,31 @@ static int touchfd = -1;
 static int xmin, xmax;
 static int ymin, ymax;
 
-void init_touch(const char* touch_device)
+int init_touch(const char* touch_device)
 {
     info_print("Initializing touch device %s ...\n", touch_device);
     struct input_absinfo info;
     if((touchfd = open(touch_device, O_RDWR)) == -1)
     {
         error_print("cannot open touch device %s\n", touch_device);
-        exit(EXIT_FAILURE);
+        return 0;
     }
     // Get the Range of X and Y
     if(ioctl(touchfd, EVIOCGABS(ABS_X), &info)) {
         error_print("cannot get ABS_X info, %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
+        return 0;
     }
     xmin = info.minimum;
     xmax = info.maximum;
     if(ioctl(touchfd, EVIOCGABS(ABS_Y), &info)) {
         error_print("cannot get ABS_Y, %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
+        return 0;
     }
     ymin = info.minimum;
     ymax = info.maximum;
 
     info_print("  x:(%d %d)  y:(%d %d) \n", xmin, xmax, ymin, ymax );
+    return 1;
 }
 
 void cleanup_touch()
