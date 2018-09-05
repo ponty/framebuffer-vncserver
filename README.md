@@ -44,3 +44,12 @@ Using qmake:
         -t device: touchscreen device node (example:/dev/input/event2)
         -h : print this help
  
+## Run on startup as service
+
+To run at startup as a service using systemd, edit the file `fbvnc.service` make sure the path and command line arguments are correct and then run:
+
+```shell
+sudo cp fbvnc.service /etc/systemd/system/
+sudo systemctl enable fbvnc.service
+sudo systemctl start fbvcn.service
+```

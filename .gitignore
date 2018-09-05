@@ -35,3 +35,5 @@ Makefile*
 .*
 !.git*
 !.travis*
+
+build/
