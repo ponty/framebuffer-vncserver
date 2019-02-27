@@ -35,10 +35,10 @@
 
 /* libvncserver */
 #include "rfb/rfb.h"
-//#include "rfb/keysym.h"
+#include "rfb/keysym.h"
 
 #include "touch.h"
-//#include "keyboard.h"
+#include "keyboard.h"
 #include "logging.h"
 
 /*****************************************************************************/
@@ -49,6 +49,7 @@
 
 static char fb_device[256] = "/dev/fb0";
 static char touch_device[256] = "";
+static char kbd_device[256] = "/dev/input/event0";
 
 static struct fb_var_screeninfo scrinfo;
 static int fbfd = -1;
@@ -126,7 +127,6 @@ static void cleanup_fb(void)
     }
 }
 
-#if 0
 static void keyevent(rfbBool down, rfbKeySym key, rfbClientPtr cl)
 {
     int scancode;
@@ -138,7 +138,6 @@ static void keyevent(rfbBool down, rfbKeySym key, rfbClientPtr cl)
         injectKeyEvent(scancode, down);
     }
 }
-#endif
 
 static void ptrevent(int buttonMask, int x, int y, rfbClientPtr cl)
 {
@@ -151,7 +150,7 @@ by a press and release of button 4, and each step downwards is represented by
 a press and release of button 5.
   From: http://www.vislab.usyd.edu.au/blogs/index.php/2009/05/22/an-headerless-indexed-protocol-for-input-1?blog=61 */
 
-    //debug_print("Got ptrevent: %04x (x=%d, y=%d)\n", buttonMask, x, y);
+    debug_print("Got ptrevent: %04x (x=%d, y=%d)\n", buttonMask, x, y);
     // Simulate left mouse event as touch event
     static int pressed = 0;
     if(buttonMask & 1)
@@ -205,7 +204,7 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch)
     server->httpDir = NULL;
     server->port = vnc_port;
 
-    //	server->kbdAddEvent = keyevent;
+    server->kbdAddEvent = keyevent;
     if(enable_touch)
     {
         server->ptrAddEvent = ptrevent;
@@ -354,6 +353,7 @@ void print_usage(char **argv)
     info_print("%s [-f device] [-p port] [-t touchscreen] [-h]\n"
                     "-p port: VNC port, default is 5900\n"
                "-f device: framebuffer device node, default is /dev/fb0\n"
+               "-k device: keyboard device node, default is /dev/input/event0\n"
                "-t device: touchscreen device node (example:/dev/input/event2)\n"
                     "-h : print this help\n"
             , *argv);
@@ -382,6 +382,10 @@ int main(int argc, char **argv)
                     i++;
                     strcpy(touch_device, argv[i]);
                     break;
+                case 'k':
+                    i++;
+                    strcpy(kbd_device, argv[i]);
+                    break;
                 case 'p':
                     i++;
                     vnc_port = atoi(argv[i]);
@@ -394,8 +398,17 @@ int main(int argc, char **argv)
 
     info_print("Initializing framebuffer device %s...\n", fb_device);
     init_fb();
-//    init_kbd();
-
+    if (strlen(kbd_device) > 0)
+    {
+        int ret = init_kbd(kbd_device);
+        if (!ret)
+            info_print("Keyboard device %s not available.\n", kbd_device);
+    }
+    else
+    {
+        info_print("No keyboard device\n");
+    }
+        
     rfbBool enable_touch = FALSE;
     if(strlen(touch_device) > 0)
     {
@@ -427,6 +440,6 @@ int main(int argc, char **argv)
 
     info_print("Cleaning up...\n");
     cleanup_fb();
-//    cleanup_kbd();
+    cleanup_kbd();
     cleanup_touch();
 }

@@ -1,5 +1,3 @@
-// TODO:
-#if 0
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,21 +18,25 @@
 
 /* libvncserver */
 #include "rfb/rfb.h"
-//#include "rfb/keysym.h"
+#include "rfb/keysym.h"
 
 #include "keyboard.h"
 #include "logging.h"
 
-static char KBD_DEVICE[256] = "/dev/input/event1";
+//static char KBD_DEVICE[256] = "/dev/input/event1";
 static int kbdfd = -1;
 
-void init_kbd()
+int init_kbd(const char* kbd_device)
 {
-    info_print("Initializing keyboard device %s ...\n", KBD_DEVICE);
-    if((kbdfd = open(KBD_DEVICE, O_RDWR)) == -1)
+    info_print("Initializing keyboard device %s ...\n", kbd_device);
+    if((kbdfd = open(kbd_device, O_RDWR)) == -1)
     {
-        error_print("cannot open kbd device %s\n", KBD_DEVICE);
-        exit(EXIT_FAILURE);
+        error_print("cannot open kbd device %s\n", kbd_device);
+        return 0;
+    }
+    else
+    {
+        return 1;
     }
 }
 
@@ -119,5 +121,3 @@ int keysym2scancode(rfbBool down, rfbKeySym key, rfbClientPtr cl)
     return scancode;
 }
 
-
-#endif
