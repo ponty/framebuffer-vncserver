@@ -53,3 +53,24 @@ sudo cp fbvnc.service /etc/systemd/system/
 sudo systemctl enable fbvnc.service
 sudo systemctl start fbvcn.service
 ```
+
+## Vfb test
+
+Run vfb.py
+
+Tests inside vagrant box:
+
+	# load vfb kernel module
+	cd /home/vagrant/vfb;./ins.sh
+
+	# set resolution, color depth
+    fbset -g 640 480 640 480 16
+	
+	# start terminal
+    fbterm < /dev/tty1 &
+
+	# set test pattern
+	fb-test
+
+	# draw random rectangles
+	rect
