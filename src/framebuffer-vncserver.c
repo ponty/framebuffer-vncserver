@@ -57,9 +57,9 @@ static unsigned short int *vncbuf;
 static unsigned short int *fbbuf;
 
 static int vnc_port = 5900;
+static int vnc_rotate = 0;
 static rfbScreenInfoPtr server;
 static size_t bytespp;
-
 
 /* No idea, just copied from fbvncserver as part of the frame differerencing
  * algorithm.  I will probably be later rewriting all of this. */
@@ -152,7 +152,7 @@ a press and release of button 5.
   From: http://www.vislab.usyd.edu.au/blogs/index.php/2009/05/22/an-headerless-indexed-protocol-for-input-1?blog=61 */
 
     //debug_print("Got ptrevent: %04x (x=%d, y=%d)\n", buttonMask, x, y);
-    // Simulate left mouse event as touch event
+	// Simulate left mouse event as touch event
     static int pressed = 0;
     if(buttonMask & 1)
     {
@@ -210,8 +210,8 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch)
     {
         server->ptrAddEvent = ptrevent;
     }
-
-    rfbInitServer(server);
+	
+	rfbInitServer(server);
 
     /* Mark as dirty since we haven't sent any updates at all yet. */
     rfbMarkRectAsModified(server, 0, 0, scrinfo.xres, scrinfo.yres);
@@ -261,69 +261,87 @@ static void update_screen(void)
     varblock.min_i = varblock.min_j = 9999;
     varblock.max_i = varblock.max_j = -1;
 
-    uint32_t *f = (uint32_t *)fbmmap;        /* -> framebuffer         */
-    uint32_t *c = (uint32_t *)fbbuf;         /* -> compare framebuffer */
-    uint32_t *r = (uint32_t *)vncbuf;        /* -> remote framebuffer  */
+    uint16_t *f = (uint16_t *)fbmmap;        /* -> framebuffer         */
+    uint16_t *c = (uint16_t *)fbbuf;         /* -> compare framebuffer */
+    uint16_t *r = (uint16_t *)vncbuf;        /* -> remote framebuffer  */
 
-    int size = scrinfo.xres * scrinfo.yres * bytespp;
+	switch(vnc_rotate)
+	{
+		case 0:
+		case 180:
+		  server->width = scrinfo.xres;
+		  server->height = scrinfo.yres;
+		  server->paddedWidthInBytes = scrinfo.xres * bytespp;
+		  break;
+		  
+		case 90:
+		case 270:
+		  server->width = scrinfo.yres;
+		  server->height = scrinfo.xres;
+		  server->paddedWidthInBytes = scrinfo.yres * bytespp;
+		  break;
+	}
+	
+	int size = scrinfo.xres * scrinfo.yres * bytespp;
     if(memcmp ( fbmmap, fbbuf, size )!=0)
     {
-//        memcpy(fbbuf, fbmmap, size);
+		int y;
+		for (y = 0; y < (int)scrinfo.yres; y++)
+		{
+			/* Compare every pixels at a time */
+			int x;
+			for (x = 0; x < (int)scrinfo.xres; x++)
+			{
+				uint16_t pixel = *f;
 
+				if (pixel != *c)
+				{
+					int x2, y2;
+					
+					*c = pixel;
+					switch (vnc_rotate)
+				    {
+						case 0:
+						  x2 = x;
+						  y2 = y;
+						  break;
+						  
+						case 90:
+						  x2 = scrinfo.yres-1-y;
+						  y2 = x;
+						  break;
+						
+						case 180:
+						  x2 = scrinfo.xres-1-x;
+						  y2 = scrinfo.yres-1-y;
+						  break;
 
-    int xstep = 4/bytespp;
+						case 270:
+						  x2 = y;
+						  y2 = scrinfo.xres-1-x;
+						  break;
+					}
+					
+					r[y2 * server->width + x2] = PIXEL_FB_TO_RFB(pixel, varblock.r_offset, varblock.g_offset, varblock.b_offset);
+					
+					if (x2 < varblock.min_i)
+						varblock.min_i = x2;
+					else
+					{
+						if (x2 > varblock.max_i)
+							varblock.max_i = x2;
 
-    int y;
-    for (y = 0; y < (int)scrinfo.yres; y++)
-    {
-        /* Compare every 1/2/4 pixels at a time */
-        int x;
-        for (x = 0; x < (int)scrinfo.xres; x += xstep)
-        {
-            uint32_t pixel = *f;
+						if (y2 > varblock.max_j)
+							varblock.max_j = y2;
+						else if (y2 < varblock.min_j)
+							varblock.min_j = y2;
+					}
+				}
 
-            if (pixel != *c)
-            {
-                *c = pixel;
-
-#if 0
-                /* XXX: Undo the checkered pattern to test the efficiency
-                 * gain using hextile encoding. */
-                if (pixel == 0x18e320e4 || pixel == 0x20e418e3)
-                    pixel = 0x18e318e3;
-#endif
-                *r = PIXEL_FB_TO_RFB(pixel,
-                                     varblock.r_offset, varblock.g_offset, varblock.b_offset);
-                if(bytespp==2)
-                {
-                    uint32_t high_pixel = (0xffff0000 & pixel) >> 16;
-                    uint32_t high_r = PIXEL_FB_TO_RFB(high_pixel, varblock.r_offset, varblock.g_offset, varblock.b_offset);
-                    *r |=  (0xffff & high_r) << 16;
-                }
-                else
-                {
-                    // TODO
-                }
-
-                if (x < varblock.min_i)
-                    varblock.min_i = x;
-                else
-                {
-                    if (x > varblock.max_i)
-                        varblock.max_i = x;
-
-                    if (y > varblock.max_j)
-                        varblock.max_j = y;
-                    else if (y < varblock.min_j)
-                        varblock.min_j = y;
-                }
-            }
-
-            f++;
-            c++;
-            r++;
-        }
-    }
+				f++;
+				c++;
+			}
+		}
     }
 
     if (varblock.min_i < 9999)
@@ -347,15 +365,14 @@ static void update_screen(void)
 
 /*****************************************************************************/
 
-
-
 void print_usage(char **argv)
 {
-    info_print("%s [-f device] [-p port] [-t touchscreen] [-h]\n"
-                    "-p port: VNC port, default is 5900\n"
+    info_print("%s [-f device] [-p port] [-t touchscreen] [-r rotation] [-h]\n"
+               "-p port: VNC port, default is 5900\n"
                "-f device: framebuffer device node, default is /dev/fb0\n"
-               "-t device: touchscreen device node (example:/dev/input/event2)\n"
-                    "-h : print this help\n"
+               "-t device: touchscreen device node, default is /dev/input/event0\n"
+               "-r degrees: framebuffer rotation, default is 0\n"
+               "-h: print this help\n"
             , *argv);
 }
 
@@ -368,25 +385,33 @@ int main(int argc, char **argv)
         {
             if(*argv[i] == '-')
             {
-                switch(*(argv[i] + 1))
-                {
+              switch(*(argv[i] + 1))
+              {
                 case 'h':
                     print_usage(argv);
                     exit(0);
                     break;
                 case 'f':
                     i++;
-                    strcpy(fb_device, argv[i]);
+                    if(argv[i])
+					            strcpy(fb_device, argv[i]);
                     break;
                 case 't':
                     i++;
-                    strcpy(touch_device, argv[i]);
+                    if(argv[i])
+                      strcpy(touch_device, argv[i]);
                     break;
                 case 'p':
                     i++;
-                    vnc_port = atoi(argv[i]);
+                    if(argv[i])
+                      vnc_port = atoi(argv[i]);
                     break;
-                }
+                case 'r':
+                    i++;
+                    if(argv[i])
+                      vnc_rotate = atoi(argv[i]);
+                    break;
+              }
             }
             i++;
         }
@@ -400,7 +425,7 @@ int main(int argc, char **argv)
     if(strlen(touch_device) > 0)
     {
         // init touch only if there is a touch device defined
-        int ret = init_touch(touch_device);
+        int ret = init_touch(touch_device, vnc_rotate);
         enable_touch = (ret>0);
     }
     else
@@ -413,12 +438,13 @@ int main(int argc, char **argv)
     info_print("	height: %d\n", (int)scrinfo.yres);
     info_print("	bpp:    %d\n", (int)scrinfo.bits_per_pixel);
     info_print("	port:   %d\n", (int)vnc_port);
+    info_print("	rotate: %d\n", (int)vnc_rotate);
     init_fb_server(argc, argv, enable_touch);
 
     /* Implement our own event loop to detect changes in the framebuffer. */
-    while (1)
+	  while (1)
     {
-        while (server->clientHead == NULL)
+		    while (server->clientHead == NULL)
             rfbProcessEvents(server, 100000);
 
         rfbProcessEvents(server, 100000);
