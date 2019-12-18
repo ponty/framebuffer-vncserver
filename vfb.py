@@ -3,7 +3,8 @@ import fabric
 # from fabric.api import env, execute, task, run, sudo, settings
 from vncdotool import api
 from entrypoint2 import entrypoint
-
+import os
+from time import sleep
 # pip3 install fabric vncdotool python-vagrant entrypoint2
 
 import sys
@@ -31,14 +32,17 @@ def start_server(c):
 def shot(c, png, *res):
     set_resolution(c, *res)
     start_server(c)
+    sleep(0.2)
     with api.connect('localhost:0') as client:
+        client.timeout = 5
         client.captureScreen(png)
 
 
 def tshot(c, *res):
     (w, h, depth) = res
-    d = 'tests/'
-    fname = d+'img/shot%sx%sd%s.png' % (w, h, depth)
+    d = 'tests/screenshots/'
+    os.makedirs(d, exist_ok=True)
+    fname = d+'shot%sx%sd%s.png' % (w, h, depth)
     shot(c, fname, *res)
 
 
