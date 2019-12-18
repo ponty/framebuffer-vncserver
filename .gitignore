@@ -37,3 +37,4 @@ Makefile*
 !.travis*
 
 build/
+*.log
