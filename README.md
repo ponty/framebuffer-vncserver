@@ -5,10 +5,14 @@ VNC server for Linux framebuffer devices.
 [![Build Status](https://travis-ci.org/ponty/framebuffer-vncserver.svg?branch=master)](https://travis-ci.org/ponty/framebuffer-vncserver)
 
 The goal is to access remote embedded Linux systems without X.
-Implemented features: remote display, touchscreen
-Not implemented: keyboard, file transfer, ..
+Implemented features: remote display, touchscreen, keyboard
+Not implemented: file transfer, ..
 
-Remote display image is not perfect in some color configurations.
+Working color configurations:
+- [ ]  8 bit/pixel
+- [x]  16 bit/pixel
+- [ ]  24 bit/pixel
+- [x]  32 bit/pixel
 
 The code is based on a LibVNC example for Android:
 https://github.com/LibVNC/libvncserver/blob/master/examples/androidvncserver.c
@@ -78,6 +82,8 @@ Inside vagrant box:
 	# draw random rectangles or ..
 	rect
 	
+	# display a GUI or ...
+	qmlscene -platform linuxfb -plugin evdevmouse:/dev/input/event4:abs -plugin evdevkeyboard:/dev/input/event2:grab=1
 
 Automatic test, generates patterns with different resolutions and color depth:
 	
