@@ -81,4 +81,5 @@ Inside vagrant box:
 
 Automatic test, generates patterns with different resolutions and color depth:
 	
+	pip3 install fabric vncdotool python-vagrant entrypoint2
 	python3 vfb.py
