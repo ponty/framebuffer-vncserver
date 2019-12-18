@@ -27,8 +27,9 @@ static int touchfd = -1;
 
 static int xmin, xmax;
 static int ymin, ymax;
+static int rotate;
 
-int init_touch(const char* touch_device)
+int init_touch(const char* touch_device, int vnc_rotate)
 {
     info_print("Initializing touch device %s ...\n", touch_device);
     struct input_absinfo info;
@@ -50,6 +51,7 @@ int init_touch(const char* touch_device)
     }
     ymin = info.minimum;
     ymax = info.maximum;
+	  rotate = vnc_rotate;
 
     info_print("  x:(%d %d)  y:(%d %d) \n", xmin, xmax, ymin, ymax );
     return 1;
@@ -69,9 +71,25 @@ void injectTouchEvent(int down, int x, int y, struct fb_var_screeninfo* scrinfo)
     int xin = x;
     int yin = y;
 
+  	switch(rotate)
+    {
+      case 90:
+        x = yin;
+        y = scrinfo->yres - 1 - xin;
+  	    break;
+  	  case 180:
+  	    x = scrinfo->xres - 1 - xin;
+        y = scrinfo->yres - 1 - yin;
+  	    break;
+  	  case 270:
+  	    x = scrinfo->xres - 1 - yin;
+  	    y = xin;
+  	    break;
+	  }
+
     // Calculate the final x and y
-    /* Fake touch screen always reports zero */
-//???//    if (xmin != 0 && xmax != 0 && ymin != 0 && ymax != 0)
+    /* Fake touch screen always reports zero */ 
+    //???//if (xmin != 0 && xmax != 0 && ymin != 0 && ymax != 0)
     {
         x = xmin + (x * (xmax - xmin)) / (scrinfo->xres);
         y = ymin + (y * (ymax - ymin)) / (scrinfo->yres);
@@ -121,6 +139,5 @@ void injectTouchEvent(int down, int x, int y, struct fb_var_screeninfo* scrinfo)
     {
         error_print("write event failed, %s\n", strerror(errno));
     }
-
     debug_print("injectTouchEvent (screen(%d,%d) -> touch(%d,%d), down=%d)\n", xin , yin, x , y, down);
 }
