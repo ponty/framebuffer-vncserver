@@ -56,21 +56,29 @@ sudo systemctl start fbvcn.service
 
 ## Vfb test
 
-Run vfb.py
+Local computer:
+	
+	vagrant up
+	vncviewer localhost &
+	vagrant ssh
 
-Tests inside vagrant box:
+Inside vagrant box:
 
-	# load vfb kernel module
-	cd /home/vagrant/vfb;./ins.sh
-
+	sudo su
+	
 	# set resolution, color depth
     fbset -g 640 480 640 480 16
 	
-	# start terminal
+	# start fb terminal or ..
     fbterm < /dev/tty1 &
 
-	# set test pattern
+	# set test pattern or ..
 	fb-test
 
-	# draw random rectangles
+	# draw random rectangles or ..
 	rect
+	
+
+Automatic test, generates patterns with different resolutions and color depth:
+	
+	python3 vfb.py

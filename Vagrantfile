@@ -71,7 +71,8 @@ Vagrant.configure(2) do |config|
    
   # tools
   sudo apt-get update
-  sudo apt-get install -y mc
+  sudo apt-get install -y mc htop
+  sudo apt-get install -y evtest
   sudo apt-get install -y xvfb
   sudo apt-get install -y libvncserver-dev
   sudo apt-get install -y build-essential
@@ -99,8 +100,23 @@ Vagrant.configure(2) do |config|
   ln -s /vagrant/tests/vfb/ins.sh  ins.sh
   ln -s /vagrant/tests/vfb/Makefile  Makefile
   make
-  ./ins.sh
+  #./ins.sh
 
+  echo '#!/bin/sh
+modinfo /home/vagrant/vfb/vfb.ko
+modprobe fb_sys_fops
+modprobe sysfillrect
+modprobe syscopyarea
+modprobe sysimgblt
+insmod /home/vagrant/vfb/vfb.ko vfb_enable=1 videomemorysize=32000000
+  ' >  /usr/local/bin/vfbload.sh
+  chmod +x /usr/local/bin/vfbload.sh
+  /usr/local/bin/vfbload.sh > /tmp/vfbload.log 2>&1
+
+  echo 'SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+@reboot   root    vfbload.sh;sleep 0.1;fbset -g 640 480 640 480 16;/home/vagrant/buildc/framebuffer-vncserver > /tmp/framebuffer-vncserver.log 2>&1
+  ' >  /etc/cron.d/framebuffer-vncserver
 
   # https://askubuntu.com/questions/168279/how-do-i-build-a-single-in-tree-kernel-module
   # https://askubuntu.com/questions/515407/how-recipe-to-build-only-one-kernel-module
@@ -124,6 +140,9 @@ Vagrant.configure(2) do |config|
   mkdir -p buildq && cd buildq
   qmake /vagrant
   make
+
+  fbset -g 640 480 640 480 16
+  /home/vagrant/buildc/framebuffer-vncserver > /tmp/framebuffer-vncserver.log 2>&1 &
   "
       config.vm.provision "shell", inline: $script
 
