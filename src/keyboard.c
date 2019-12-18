@@ -52,10 +52,21 @@ void injectKeyEvent(uint16_t code, uint16_t value)
 {
     struct input_event ev;
     memset(&ev, 0, sizeof(ev));
+
     gettimeofday(&ev.time,0);
     ev.type = EV_KEY;
     ev.code = code;
     ev.value = value;
+    if(write(kbdfd, &ev, sizeof(ev)) < 0)
+    {
+        error_print("write event failed, %s\n", strerror(errno));
+    }
+
+    // Finally send the SYN
+    gettimeofday(&ev.time,0);
+    ev.type = EV_SYN;
+    ev.code = 0;
+    ev.value = 0;
     if(write(kbdfd, &ev, sizeof(ev)) < 0)
     {
         error_print("write event failed, %s\n", strerror(errno));
