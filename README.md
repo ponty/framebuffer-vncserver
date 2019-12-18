@@ -42,5 +42,6 @@ Using qmake:
         -p port: VNC port, default is 5900
         -f device: framebuffer device node, default is /dev/fb0
         -t device: touchscreen device node (example:/dev/input/event2)
+        -r degrees: framebuffer rotation, default is 0
         -h : print this help
  
