@@ -353,7 +353,7 @@ void print_usage(char **argv)
     info_print("%s [-f device] [-p port] [-t touchscreen] [-h]\n"
                     "-p port: VNC port, default is 5900\n"
                "-f device: framebuffer device node, default is /dev/fb0\n"
-               "-k device: keyboard device node, default is /dev/input/event0\n"
+               "-k device: keyboard device node (example: /dev/input/event0)\n"
                "-t device: touchscreen device node (example:/dev/input/event2)\n"
                     "-h : print this help\n"
             , *argv);
