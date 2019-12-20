@@ -293,13 +293,25 @@ if(vnc_rotate==0)
                 if (pixel == 0x18e320e4 || pixel == 0x20e418e3)
                     pixel = 0x18e318e3;
 #endif
-                *r = PIXEL_FB_TO_RFB(pixel,
-                                     varblock.r_offset, varblock.g_offset, varblock.b_offset);
+                if(bytespp==4)
+                {
+                    *r = PIXEL_FB_TO_RFB(pixel,
+                                         varblock.r_offset, varblock.g_offset, varblock.b_offset);
+                }
+                else
                 if(bytespp==2)
                 {
+                    *r = PIXEL_FB_TO_RFB(pixel,
+                                         varblock.r_offset, varblock.g_offset, varblock.b_offset);
+
                     uint32_t high_pixel = (0xffff0000 & pixel) >> 16;
                     uint32_t high_r = PIXEL_FB_TO_RFB(high_pixel, varblock.r_offset, varblock.g_offset, varblock.b_offset);
                     *r |=  (0xffff & high_r) << 16;
+                }
+                else
+                if(bytespp==1)
+                {
+                    *r = pixel;
                 }
                 else
                 {
