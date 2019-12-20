@@ -71,6 +71,9 @@ sudo systemctl start fbvcn.service
 
 ## Vfb test
 
+Linux Virtual Frame Buffer kernel object (vfb.ko) is used for this test.
+https://cateee.net/lkddb/web-lkddb/FB_VIRTUAL.html
+
 Local computer:
 	
 	vagrant up
@@ -80,9 +83,15 @@ Local computer:
 Inside vagrant box:
 
 	sudo su
-	
+
+	# build framebuffer-vncserver
+	cd /home/vagrant/buildc/;make
+
 	# set resolution, color depth
     fbset -g 640 480 640 480 16
+
+	# restart framebuffer-vncserver
+	killall framebuffer-vncserver;/home/vagrant/buildc/framebuffer-vncserver -t /dev/input/ms -k /dev/input/kbd &
 
 	# set test pattern or ..
 	fb-test
