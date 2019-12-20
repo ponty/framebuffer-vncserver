@@ -23,27 +23,28 @@ def set_resolution(c, *res):
     c.sudo('fb-test')
 
 
-def start_server(c):
+def start_server(c, rotation):
     c.sudo('killall framebuffer-vncserver', warn=True)
-    command = 'nohup %s &> /dev/null &' % '/home/vagrant/buildc/framebuffer-vncserver'
+    command = f"nohup /home/vagrant/buildc/framebuffer-vncserver -r {rotation}  &> /dev/null &"
+    print(f"command: {command}")
     c.sudo(command, pty=False)
 
 
-def shot(c, png, *res):
+def shot(c, png, rotation, *res):
     set_resolution(c, *res)
-    start_server(c)
+    start_server(c, rotation)
     sleep(0.2)
     with api.connect('localhost:0') as client:
         client.timeout = 5
         client.captureScreen(png)
 
 
-def tshot(c, *res):
+def tshot(c, rotation, *res):
     (w, h, depth) = res
     d = 'tests/screenshots/'
     os.makedirs(d, exist_ok=True)
-    fname = d+'shot%sx%sd%s.png' % (w, h, depth)
-    shot(c, fname, *res)
+    fname = f'{d}shot{w}x{h}_d{depth}_rot{rotation}.png'
+    shot(c, fname, rotation, *res)
 
 
 @entrypoint
@@ -57,11 +58,9 @@ def main():
         },
     ) as c:
         build(c)
-        tshot(c, 640, 480, 32)
-        # tshot(c,640, 480, 24)
-        tshot(c, 640, 480, 16)
-        tshot(c, 640, 480, 8)
-        tshot(c, 320, 240, 32)
-        # tshot(c,640, 480, 24)
-        tshot(c, 320, 240, 16)
-        tshot(c, 320, 240, 8)
+        for rot in [0]:
+            tshot(c, rot, 320, 240, 8)
+            tshot(c, rot, 320, 240, 16)
+            tshot(c, rot, 320, 240, 32)
+        for rot in [90, 180, 270]:
+            tshot(c, rot, 320, 240, 16)

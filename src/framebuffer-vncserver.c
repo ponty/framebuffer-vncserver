@@ -260,6 +260,75 @@ static void update_screen(void)
     varblock.min_i = varblock.min_j = 9999;
     varblock.max_i = varblock.max_j = -1;
 
+if(vnc_rotate==0)
+{
+    uint32_t *f = (uint32_t *)fbmmap;        /* -> framebuffer         */
+    uint32_t *c = (uint32_t *)fbbuf;         /* -> compare framebuffer */
+    uint32_t *r = (uint32_t *)vncbuf;        /* -> remote framebuffer  */
+
+    int size = scrinfo.xres * scrinfo.yres * bytespp;
+    if(memcmp ( fbmmap, fbbuf, size )!=0)
+    {
+//        memcpy(fbbuf, fbmmap, size);
+
+
+    int xstep = 4/bytespp;
+
+    int y;
+    for (y = 0; y < (int)scrinfo.yres; y++)
+    {
+        /* Compare every 1/2/4 pixels at a time */
+        int x;
+        for (x = 0; x < (int)scrinfo.xres; x += xstep)
+        {
+            uint32_t pixel = *f;
+
+            if (pixel != *c)
+            {
+                *c = pixel;
+
+#if 0
+                /* XXX: Undo the checkered pattern to test the efficiency
+                 * gain using hextile encoding. */
+                if (pixel == 0x18e320e4 || pixel == 0x20e418e3)
+                    pixel = 0x18e318e3;
+#endif
+                *r = PIXEL_FB_TO_RFB(pixel,
+                                     varblock.r_offset, varblock.g_offset, varblock.b_offset);
+                if(bytespp==2)
+                {
+                    uint32_t high_pixel = (0xffff0000 & pixel) >> 16;
+                    uint32_t high_r = PIXEL_FB_TO_RFB(high_pixel, varblock.r_offset, varblock.g_offset, varblock.b_offset);
+                    *r |=  (0xffff & high_r) << 16;
+                }
+                else
+                {
+                    // TODO
+                }
+
+                if (x < varblock.min_i)
+                    varblock.min_i = x;
+                else
+                {
+                    if (x > varblock.max_i)
+                        varblock.max_i = x;
+
+                    if (y > varblock.max_j)
+                        varblock.max_j = y;
+                    else if (y < varblock.min_j)
+                        varblock.min_j = y;
+                }
+            }
+
+            f++;
+            c++;
+            r++;
+        }
+    }
+    }
+}
+else
+{
     uint16_t *f = (uint16_t *)fbmmap;        /* -> framebuffer         */
     uint16_t *c = (uint16_t *)fbbuf;         /* -> compare framebuffer */
     uint16_t *r = (uint16_t *)vncbuf;        /* -> remote framebuffer  */
@@ -342,7 +411,7 @@ static void update_screen(void)
 			}
 		}
     }
-
+}
     if (varblock.min_i < 9999)
     {
         if (varblock.max_i < 0)

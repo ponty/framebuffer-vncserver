@@ -5,15 +5,23 @@ VNC server for Linux framebuffer devices.
 [![Build Status](https://travis-ci.org/ponty/framebuffer-vncserver.svg?branch=master)](https://travis-ci.org/ponty/framebuffer-vncserver)
 
 The goal is to access remote embedded Linux systems without X.
-Implemented features: remote display, touchscreen, keyboard
+Implemented features: remote display, touchscreen, keyboard, rotation
 Not implemented: file transfer, ..
 
-Working color configurations:
+Working configurations:
+without rotation:
 - [ ]  1 bit/pixel
 - [ ]  8 bit/pixel
 - [x]  16 bit/pixel
 - [ ]  24 bit/pixel
 - [x]  32 bit/pixel
+
+with rotation:
+- [ ]  1 bit/pixel
+- [ ]  8 bit/pixel
+- [x]  16 bit/pixel
+- [ ]  24 bit/pixel
+- [ ]  32 bit/pixel
 
 The code is based on a LibVNC example for Android:
 https://github.com/LibVNC/libvncserver/blob/master/examples/androidvncserver.c
