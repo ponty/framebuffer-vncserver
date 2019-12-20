@@ -24,7 +24,7 @@
 #include <sys/ioctl.h>
 
 #include <sys/stat.h>
-#include <sys/sysmacros.h>             /* For makedev() */
+#include <sys/sysmacros.h> /* For makedev() */
 
 #include <fcntl.h>
 #include <linux/fb.h>
@@ -44,8 +44,8 @@
 /*****************************************************************************/
 //#define LOG_FPS
 
-#define BITS_PER_SAMPLE     5
-#define SAMPLES_PER_PIXEL   2
+#define BITS_PER_SAMPLE 5
+#define SAMPLES_PER_PIXEL 2
 
 static char fb_device[256] = "/dev/fb0";
 static char touch_device[256] = "";
@@ -79,7 +79,6 @@ static struct varblock_t
 
 /*****************************************************************************/
 
-
 static void init_fb(void)
 {
     size_t pixels;
@@ -100,15 +99,14 @@ static void init_fb(void)
     bytespp = scrinfo.bits_per_pixel / 8;
 
     info_print("  xres=%d, yres=%d, xresv=%d, yresv=%d, xoffs=%d, yoffs=%d, bpp=%d\n",
-            (int)scrinfo.xres, (int)scrinfo.yres,
-            (int)scrinfo.xres_virtual, (int)scrinfo.yres_virtual,
-            (int)scrinfo.xoffset, (int)scrinfo.yoffset,
-            (int)scrinfo.bits_per_pixel);
+               (int)scrinfo.xres, (int)scrinfo.yres,
+               (int)scrinfo.xres_virtual, (int)scrinfo.yres_virtual,
+               (int)scrinfo.xoffset, (int)scrinfo.yoffset,
+               (int)scrinfo.bits_per_pixel);
     info_print("  offset:length red=%d:%d green=%d:%d blue=%d:%d \n",
-            (int)scrinfo.red.offset, (int)scrinfo.red.length,
-            (int)scrinfo.green.offset, (int)scrinfo.green.length,
-            (int)scrinfo.blue.offset, (int)scrinfo.blue.length
-            );
+               (int)scrinfo.red.offset, (int)scrinfo.red.length,
+               (int)scrinfo.green.offset, (int)scrinfo.green.length,
+               (int)scrinfo.blue.offset, (int)scrinfo.blue.length);
 
     fbmmap = mmap(NULL, pixels * bytespp, PROT_READ, MAP_SHARED, fbfd, 0);
 
@@ -121,7 +119,7 @@ static void init_fb(void)
 
 static void cleanup_fb(void)
 {
-    if(fbfd != -1)
+    if (fbfd != -1)
     {
         close(fbfd);
     }
@@ -153,7 +151,7 @@ a press and release of button 5.
     debug_print("Got ptrevent: %04x (x=%d, y=%d)\n", buttonMask, x, y);
     // Simulate left mouse event as touch event
     static int pressed = 0;
-    if(buttonMask & 1)
+    if (buttonMask & 1)
     {
         if (pressed == 1)
         {
@@ -167,7 +165,7 @@ a press and release of button 5.
             injectTouchEvent(1, x, y, &scrinfo);
         }
     }
-    if(buttonMask == 0)
+    if (buttonMask == 0)
     {
         if (pressed == 1)
         {
@@ -205,12 +203,12 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch)
     server->port = vnc_port;
 
     server->kbdAddEvent = keyevent;
-    if(enable_touch)
+    if (enable_touch)
     {
         server->ptrAddEvent = ptrevent;
     }
-	
-	rfbInitServer(server);
+
+    rfbInitServer(server);
 
     /* Mark as dirty since we haven't sent any updates at all yet. */
     rfbMarkRectAsModified(server, 0, 0, scrinfo.xres, scrinfo.yres);
@@ -224,32 +222,33 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch)
 }
 
 // sec
-#define LOG_TIME    5
+#define LOG_TIME 5
 
-int timeToLogFPS() {
-    static struct timeval now={0,0}, then={0,0};
+int timeToLogFPS()
+{
+    static struct timeval now = {0, 0}, then = {0, 0};
     double elapsed, dnow, dthen;
-    gettimeofday(&now,NULL);
-    dnow  = now.tv_sec  + (now.tv_usec /1000000.0);
-    dthen = then.tv_sec + (then.tv_usec/1000000.0);
+    gettimeofday(&now, NULL);
+    dnow = now.tv_sec + (now.tv_usec / 1000000.0);
+    dthen = then.tv_sec + (then.tv_usec / 1000000.0);
     elapsed = dnow - dthen;
     if (elapsed > LOG_TIME)
-      memcpy((char *)&then, (char *)&now, sizeof(struct timeval));
+        memcpy((char *)&then, (char *)&now, sizeof(struct timeval));
     return elapsed > LOG_TIME;
 }
 
 /*****************************************************************************/
 //#define COLOR_MASK  0x1f001f
-#define COLOR_MASK  (((1 << BITS_PER_SAMPLE) << 1) - 1)
-#define PIXEL_FB_TO_RFB(p,r_offset,g_offset,b_offset) \
-    ((p>>r_offset)&COLOR_MASK) | (((p>>g_offset)&COLOR_MASK)<<BITS_PER_SAMPLE) | (((p>>b_offset)&COLOR_MASK)<<(2*BITS_PER_SAMPLE))
+#define COLOR_MASK (((1 << BITS_PER_SAMPLE) << 1) - 1)
+#define PIXEL_FB_TO_RFB(p, r_offset, g_offset, b_offset) \
+    ((p >> r_offset) & COLOR_MASK) | (((p >> g_offset) & COLOR_MASK) << BITS_PER_SAMPLE) | (((p >> b_offset) & COLOR_MASK) << (2 * BITS_PER_SAMPLE))
 
 static void update_screen(void)
 {
 #ifdef LOG_FPS
     static int frames = 0;
     frames++;
-    if(timeToLogFPS())
+    if (timeToLogFPS())
     {
         double fps = frames / LOG_TIME;
         info_print("  fps: %f\n", fps);
@@ -260,32 +259,31 @@ static void update_screen(void)
     varblock.min_i = varblock.min_j = 9999;
     varblock.max_i = varblock.max_j = -1;
 
-if(vnc_rotate==0)
-{
-    uint32_t *f = (uint32_t *)fbmmap;        /* -> framebuffer         */
-    uint32_t *c = (uint32_t *)fbbuf;         /* -> compare framebuffer */
-    uint32_t *r = (uint32_t *)vncbuf;        /* -> remote framebuffer  */
-
-    int size = scrinfo.xres * scrinfo.yres * bytespp;
-    if(memcmp ( fbmmap, fbbuf, size )!=0)
+    if (vnc_rotate == 0)
     {
-//        memcpy(fbbuf, fbmmap, size);
+        uint32_t *f = (uint32_t *)fbmmap; /* -> framebuffer         */
+        uint32_t *c = (uint32_t *)fbbuf;  /* -> compare framebuffer */
+        uint32_t *r = (uint32_t *)vncbuf; /* -> remote framebuffer  */
 
-
-    int xstep = 4/bytespp;
-
-    int y;
-    for (y = 0; y < (int)scrinfo.yres; y++)
-    {
-        /* Compare every 1/2/4 pixels at a time */
-        int x;
-        for (x = 0; x < (int)scrinfo.xres; x += xstep)
+        int size = scrinfo.xres * scrinfo.yres * bytespp;
+        if (memcmp(fbmmap, fbbuf, size) != 0)
         {
-            uint32_t pixel = *f;
+            //        memcpy(fbbuf, fbmmap, size);
 
-            if (pixel != *c)
+            int xstep = 4 / bytespp;
+
+            int y;
+            for (y = 0; y < (int)scrinfo.yres; y++)
             {
-                *c = pixel;
+                /* Compare every 1/2/4 pixels at a time */
+                int x;
+                for (x = 0; x < (int)scrinfo.xres; x += xstep)
+                {
+                    uint32_t pixel = *f;
+
+                    if (pixel != *c)
+                    {
+                        *c = pixel;
 
 #if 0
                 /* XXX: Undo the checkered pattern to test the efficiency
@@ -293,137 +291,135 @@ if(vnc_rotate==0)
                 if (pixel == 0x18e320e4 || pixel == 0x20e418e3)
                     pixel = 0x18e318e3;
 #endif
-                if(bytespp==4)
-                {
-                    *r = PIXEL_FB_TO_RFB(pixel,
-                                         varblock.r_offset, varblock.g_offset, varblock.b_offset);
-                }
-                else
-                if(bytespp==2)
-                {
-                    *r = PIXEL_FB_TO_RFB(pixel,
-                                         varblock.r_offset, varblock.g_offset, varblock.b_offset);
+                        if (bytespp == 4)
+                        {
+                            *r = PIXEL_FB_TO_RFB(pixel,
+                                                 varblock.r_offset, varblock.g_offset, varblock.b_offset);
+                        }
+                        else if (bytespp == 2)
+                        {
+                            *r = PIXEL_FB_TO_RFB(pixel,
+                                                 varblock.r_offset, varblock.g_offset, varblock.b_offset);
 
-                    uint32_t high_pixel = (0xffff0000 & pixel) >> 16;
-                    uint32_t high_r = PIXEL_FB_TO_RFB(high_pixel, varblock.r_offset, varblock.g_offset, varblock.b_offset);
-                    *r |=  (0xffff & high_r) << 16;
-                }
-                else
-                if(bytespp==1)
-                {
-                    *r = pixel;
-                }
-                else
-                {
-                    // TODO
-                }
+                            uint32_t high_pixel = (0xffff0000 & pixel) >> 16;
+                            uint32_t high_r = PIXEL_FB_TO_RFB(high_pixel, varblock.r_offset, varblock.g_offset, varblock.b_offset);
+                            *r |= (0xffff & high_r) << 16;
+                        }
+                        else if (bytespp == 1)
+                        {
+                            *r = pixel;
+                        }
+                        else
+                        {
+                            // TODO
+                        }
 
-                if (x < varblock.min_i)
-                    varblock.min_i = x;
-                else
-                {
-                    if (x > varblock.max_i)
-                        varblock.max_i = x;
+                        if (x < varblock.min_i)
+                            varblock.min_i = x;
+                        else
+                        {
+                            if (x > varblock.max_i)
+                                varblock.max_i = x;
 
-                    if (y > varblock.max_j)
-                        varblock.max_j = y;
-                    else if (y < varblock.min_j)
-                        varblock.min_j = y;
+                            if (y > varblock.max_j)
+                                varblock.max_j = y;
+                            else if (y < varblock.min_j)
+                                varblock.min_j = y;
+                        }
+                    }
+
+                    f++;
+                    c++;
+                    r++;
                 }
             }
-
-            f++;
-            c++;
-            r++;
         }
     }
-    }
-}
-else
-{
-    uint16_t *f = (uint16_t *)fbmmap;        /* -> framebuffer         */
-    uint16_t *c = (uint16_t *)fbbuf;         /* -> compare framebuffer */
-    uint16_t *r = (uint16_t *)vncbuf;        /* -> remote framebuffer  */
-
-	switch(vnc_rotate)
-	{
-		case 0:
-		case 180:
-		  server->width = scrinfo.xres;
-		  server->height = scrinfo.yres;
-		  server->paddedWidthInBytes = scrinfo.xres * bytespp;
-		  break;
-		  
-		case 90:
-		case 270:
-		  server->width = scrinfo.yres;
-		  server->height = scrinfo.xres;
-		  server->paddedWidthInBytes = scrinfo.yres * bytespp;
-		  break;
-	}
-	
-	int size = scrinfo.xres * scrinfo.yres * bytespp;
-    if(memcmp ( fbmmap, fbbuf, size )!=0)
+    else
     {
-		int y;
-		for (y = 0; y < (int)scrinfo.yres; y++)
-		{
-			/* Compare every pixels at a time */
-			int x;
-			for (x = 0; x < (int)scrinfo.xres; x++)
-			{
-				uint16_t pixel = *f;
+        uint16_t *f = (uint16_t *)fbmmap; /* -> framebuffer         */
+        uint16_t *c = (uint16_t *)fbbuf;  /* -> compare framebuffer */
+        uint16_t *r = (uint16_t *)vncbuf; /* -> remote framebuffer  */
 
-				if (pixel != *c)
-				{
-					int x2, y2;
-					
-					*c = pixel;
-					switch (vnc_rotate)
-				    {
-						case 0:
-						  x2 = x;
-						  y2 = y;
-						  break;
-						  
-						case 90:
-						  x2 = scrinfo.yres-1-y;
-						  y2 = x;
-						  break;
-						
-						case 180:
-						  x2 = scrinfo.xres-1-x;
-						  y2 = scrinfo.yres-1-y;
-						  break;
+        switch (vnc_rotate)
+        {
+        case 0:
+        case 180:
+            server->width = scrinfo.xres;
+            server->height = scrinfo.yres;
+            server->paddedWidthInBytes = scrinfo.xres * bytespp;
+            break;
 
-						case 270:
-						  x2 = y;
-						  y2 = scrinfo.xres-1-x;
-						  break;
-					}
-					
-					r[y2 * server->width + x2] = PIXEL_FB_TO_RFB(pixel, varblock.r_offset, varblock.g_offset, varblock.b_offset);
-					
-					if (x2 < varblock.min_i)
-						varblock.min_i = x2;
-					else
-					{
-						if (x2 > varblock.max_i)
-							varblock.max_i = x2;
+        case 90:
+        case 270:
+            server->width = scrinfo.yres;
+            server->height = scrinfo.xres;
+            server->paddedWidthInBytes = scrinfo.yres * bytespp;
+            break;
+        }
 
-						if (y2 > varblock.max_j)
-							varblock.max_j = y2;
-						else if (y2 < varblock.min_j)
-							varblock.min_j = y2;
-					}
-				}
+        int size = scrinfo.xres * scrinfo.yres * bytespp;
+        if (memcmp(fbmmap, fbbuf, size) != 0)
+        {
+            int y;
+            for (y = 0; y < (int)scrinfo.yres; y++)
+            {
+                /* Compare every pixels at a time */
+                int x;
+                for (x = 0; x < (int)scrinfo.xres; x++)
+                {
+                    uint16_t pixel = *f;
 
-				f++;
-				c++;
-			}
-		}
+                    if (pixel != *c)
+                    {
+                        int x2, y2;
+
+                        *c = pixel;
+                        switch (vnc_rotate)
+                        {
+                        case 0:
+                            x2 = x;
+                            y2 = y;
+                            break;
+
+                        case 90:
+                            x2 = scrinfo.yres - 1 - y;
+                            y2 = x;
+                            break;
+
+                        case 180:
+                            x2 = scrinfo.xres - 1 - x;
+                            y2 = scrinfo.yres - 1 - y;
+                            break;
+
+                        case 270:
+                            x2 = y;
+                            y2 = scrinfo.xres - 1 - x;
+                            break;
+                        }
+
+                        r[y2 * server->width + x2] = PIXEL_FB_TO_RFB(pixel, varblock.r_offset, varblock.g_offset, varblock.b_offset);
+
+                        if (x2 < varblock.min_i)
+                            varblock.min_i = x2;
+                        else
+                        {
+                            if (x2 > varblock.max_i)
+                                varblock.max_i = x2;
+
+                            if (y2 > varblock.max_j)
+                                varblock.max_j = y2;
+                            else if (y2 < varblock.min_j)
+                                varblock.min_j = y2;
+                        }
+                    }
+
+                    f++;
+                    c++;
+                }
+            }
+        }
     }
-}
     if (varblock.min_i < 9999)
     {
         if (varblock.max_i < 0)
@@ -433,8 +429,8 @@ else
             varblock.max_j = varblock.min_j;
 
         debug_print("Dirty page: %dx%d+%d+%d...\n",
-                (varblock.max_i+2) - varblock.min_i, (varblock.max_j+1) - varblock.min_j,
-                varblock.min_i, varblock.min_j);
+                    (varblock.max_i + 2) - varblock.min_i, (varblock.max_j + 1) - varblock.min_j,
+                    varblock.min_i, varblock.min_j);
 
         rfbMarkRectAsModified(server, varblock.min_i, varblock.min_j,
                               varblock.max_i + 2, varblock.max_j + 1);
@@ -453,34 +449,34 @@ void print_usage(char **argv)
                "-k device: keyboard device node (example: /dev/input/event0)\n"
                "-t device: touchscreen device node (example:/dev/input/event2)\n"
                "-r degrees: framebuffer rotation, default is 0\n"
-               "-h: print this help\n"
-            , *argv);
+               "-h: print this help\n",
+               *argv);
 }
 
 int main(int argc, char **argv)
 {
-    if(argc > 1)
+    if (argc > 1)
     {
-        int i=1;
-        while(i < argc)
+        int i = 1;
+        while (i < argc)
         {
-            if(*argv[i] == '-')
+            if (*argv[i] == '-')
             {
-              switch(*(argv[i] + 1))
-              {
+                switch (*(argv[i] + 1))
+                {
                 case 'h':
                     print_usage(argv);
                     exit(0);
                     break;
                 case 'f':
                     i++;
-                    if(argv[i])
-					            strcpy(fb_device, argv[i]);
+                    if (argv[i])
+                        strcpy(fb_device, argv[i]);
                     break;
                 case 't':
                     i++;
-                    if(argv[i])
-                      strcpy(touch_device, argv[i]);
+                    if (argv[i])
+                        strcpy(touch_device, argv[i]);
                     break;
                 case 'k':
                     i++;
@@ -488,15 +484,15 @@ int main(int argc, char **argv)
                     break;
                 case 'p':
                     i++;
-                    if(argv[i])
-                      vnc_port = atoi(argv[i]);
+                    if (argv[i])
+                        vnc_port = atoi(argv[i]);
                     break;
                 case 'r':
                     i++;
-                    if(argv[i])
-                      vnc_rotate = atoi(argv[i]);
+                    if (argv[i])
+                        vnc_rotate = atoi(argv[i]);
                     break;
-              }
+                }
             }
             i++;
         }
@@ -514,13 +510,13 @@ int main(int argc, char **argv)
     {
         info_print("No keyboard device\n");
     }
-        
+
     rfbBool enable_touch = FALSE;
-    if(strlen(touch_device) > 0)
+    if (strlen(touch_device) > 0)
     {
         // init touch only if there is a touch device defined
         int ret = init_touch(touch_device, vnc_rotate);
-        enable_touch = (ret>0);
+        enable_touch = (ret > 0);
     }
     else
     {
@@ -536,9 +532,9 @@ int main(int argc, char **argv)
     init_fb_server(argc, argv, enable_touch);
 
     /* Implement our own event loop to detect changes in the framebuffer. */
-	  while (1)
+    while (1)
     {
-		    while (server->clientHead == NULL)
+        while (server->clientHead == NULL)
             rfbProcessEvents(server, 100000);
 
         rfbProcessEvents(server, 100000);
