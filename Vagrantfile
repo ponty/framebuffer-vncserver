@@ -116,9 +116,14 @@ insmod /home/vagrant/vfb/vfb.ko vfb_enable=1 videomemorysize=32000000
   chmod +x /usr/local/bin/vfbload.sh
   /usr/local/bin/vfbload.sh > /tmp/vfbload.log 2>&1
 
+  echo 'ENV{ID_INPUT_MOUSE}==\"?*\",ENV{ID_PATH}==\"pci-0000:00:04.0\", SYMLINK+=\"input/ms\"' >  /etc/udev/rules.d/98-input.rules
+  echo 'ENV{ID_INPUT_KEYBOARD}==\"?*\", SYMLINK+=\"input/kbd\"' >> /etc/udev/rules.d/98-input.rules
+  udevadm control --reload-rules
+  udevadm trigger
+
   echo 'SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-@reboot   root    vfbload.sh;sleep 0.1;fbset -g 640 480 640 480 16;/home/vagrant/buildc/framebuffer-vncserver -t /dev/input/event4 -k /dev/input/event2 > /tmp/framebuffer-vncserver.log 2>&1
+@reboot   root    vfbload.sh;sleep 0.1;fbset -g 640 480 640 480 16;/home/vagrant/buildc/framebuffer-vncserver -t /dev/input/ms -k /dev/input/kbd > /tmp/framebuffer-vncserver.log 2>&1
   ' >  /etc/cron.d/framebuffer-vncserver
 
   # https://askubuntu.com/questions/168279/how-do-i-build-a-single-in-tree-kernel-module
@@ -145,7 +150,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
   make
 
   fbset -g 640 480 640 480 16
-  /home/vagrant/buildc/framebuffer-vncserver -t /dev/input/event4 -k /dev/input/event2 > /tmp/framebuffer-vncserver.log 2>&1 &
+  /home/vagrant/buildc/framebuffer-vncserver -t /dev/input/ms -k /dev/input/kbd > /tmp/framebuffer-vncserver.log 2>&1 &
   "
       config.vm.provision "shell", inline: $script
 

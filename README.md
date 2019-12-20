@@ -91,7 +91,7 @@ Inside vagrant box:
 	rect
 	
 	# display a GUI or ...
-	qmlscene -platform linuxfb -plugin evdevmouse:/dev/input/event4:abs -plugin evdevkeyboard:/dev/input/event2:grab=1
+	qmlscene -platform linuxfb -plugin evdevmouse:/dev/input/ms:abs -plugin evdevkeyboard:/dev/input/kbd:grab=1
 
 Automatic test, generates patterns with different resolutions and color depth:
 	
