@@ -42,14 +42,15 @@ Using qmake:
 
 ### command-line help 
 
-	# framebuffer-vncserver -h
-        framebuffer-vncserver [-f device] [-p port] [-t touchscreen] [-h]
-        -p port: VNC port, default is 5900
-        -f device: framebuffer device node, default is /dev/fb0
-        -t device: touchscreen device node (example:/dev/input/event2)
-        -r degrees: framebuffer rotation, default is 0
-        -h : print this help
- 
+	# ./framebuffer-vncserver -h
+		framebuffer-vncserver [-f device] [-p port] [-t touchscreen] [-k keyboard] [-r rotation] [-h]
+		-p port: VNC port, default is 5900
+		-f device: framebuffer device node, default is /dev/fb0
+		-k device: keyboard device node (example: /dev/input/event0)
+		-t device: touchscreen device node (example:/dev/input/event2)
+		-r degrees: framebuffer rotation, default is 0
+		-h: print this help
+
 ## Run on startup as service
 
 To run at startup as a service using systemd, edit the file `fbvnc.service` make sure the path and command line arguments are correct and then run:
