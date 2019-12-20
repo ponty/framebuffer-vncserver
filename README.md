@@ -9,6 +9,7 @@ Implemented features: remote display, touchscreen, keyboard
 Not implemented: file transfer, ..
 
 Working color configurations:
+- [ ]  1 bit/pixel
 - [ ]  8 bit/pixel
 - [x]  16 bit/pixel
 - [ ]  24 bit/pixel
@@ -72,9 +73,6 @@ Inside vagrant box:
 	
 	# set resolution, color depth
     fbset -g 640 480 640 480 16
-	
-	# start fb terminal or ..
-    fbterm < /dev/tty1 &
 
 	# set test pattern or ..
 	fb-test
