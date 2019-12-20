@@ -74,13 +74,16 @@ Vagrant.configure(2) do |config|
   sudo apt-get install -y mc htop
   sudo apt-get install -y evtest
   sudo apt-get install -y xvfb
+  sudo apt-get install -y python3-pip
   sudo apt-get install -y libvncserver-dev
   sudo apt-get install -y build-essential
   sudo apt-get install -y cmake
   sudo apt-get install -y qt5-qmake qt5-default
   sudo apt-get install -y linux-source libssl-dev libelf-dev
   sudo apt-get install -y fbset fbcat fbterm fbi
-  
+  sudo apt-get install -y qmlscene
+  #sudo pip3 install pygame
+
   # fb-test
   cd /home/vagrant
   git clone https://github.com/ponty/fb-test-app.git
@@ -115,7 +118,7 @@ insmod /home/vagrant/vfb/vfb.ko vfb_enable=1 videomemorysize=32000000
 
   echo 'SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-@reboot   root    vfbload.sh;sleep 0.1;fbset -g 640 480 640 480 16;/home/vagrant/buildc/framebuffer-vncserver > /tmp/framebuffer-vncserver.log 2>&1
+@reboot   root    vfbload.sh;sleep 0.1;fbset -g 640 480 640 480 16;/home/vagrant/buildc/framebuffer-vncserver -t /dev/input/event4 -k /dev/input/event2 > /tmp/framebuffer-vncserver.log 2>&1
   ' >  /etc/cron.d/framebuffer-vncserver
 
   # https://askubuntu.com/questions/168279/how-do-i-build-a-single-in-tree-kernel-module
@@ -142,7 +145,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
   make
 
   fbset -g 640 480 640 480 16
-  /home/vagrant/buildc/framebuffer-vncserver > /tmp/framebuffer-vncserver.log 2>&1 &
+  /home/vagrant/buildc/framebuffer-vncserver -t /dev/input/event4 -k /dev/input/event2 > /tmp/framebuffer-vncserver.log 2>&1 &
   "
       config.vm.provision "shell", inline: $script
 
