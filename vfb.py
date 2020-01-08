@@ -11,40 +11,49 @@ import sys
 print(sys.version)
 
 
-def build(c):
+def build(conn):
     # with c.cd("/home/vagrant/buildc"): # bug in invoke: https://github.com/pyinvoke/invoke/issues/459
-    c.sudo('sh -c "cd /home/vagrant/buildc;cmake /vagrant"')
-    c.sudo('sh -c "cd /home/vagrant/buildc;make"')
+    conn.sudo('sh -c "cd /home/vagrant/buildc;cmake /vagrant"')
+    conn.sudo('sh -c "cd /home/vagrant/buildc;make"')
 
 
-def set_resolution(c, *res):
+def set_resolution(conn, *res):
     (w, h, depth) = res
-    c.sudo('fbset -g %s %s %s %s %s' % (w, h, w, h, depth))
-    c.sudo('fb-test')
+    conn.sudo('fbset -g %s %s %s %s %s' % (w, h, w, h, depth))
 
 
-def start_server(c, rotation):
-    c.sudo('killall framebuffer-vncserver', warn=True)
+def start_server(conn, rotation):
+    conn.sudo('killall framebuffer-vncserver', warn=True)
     command = f"nohup /home/vagrant/buildc/framebuffer-vncserver -r {rotation}  &> /dev/null &"
     print(f"command: {command}")
-    c.sudo(command, pty=False)
+    conn.sudo(command, pty=False)
 
 
-def shot(c, png, rotation, *res):
-    set_resolution(c, *res)
-    start_server(c, rotation)
+def shot(conn, directory, png, rotation, *res):
+    (w, h, depth) = res
+
+    set_resolution(conn, *res)
+    start_server(conn, rotation)
     sleep(0.2)
+
+    conn.sudo('fb-test')
     with api.connect('localhost:0') as client:
         client.timeout = 5
-        client.captureScreen(png)
+        client.captureScreen(directory+'fbtest_'+png)
+
+    conn.sudo(
+        f'python3 /vagrant/gradient.py --width {w} --height {h} --colorbit {depth}')
+    with api.connect('localhost:0') as client:
+        client.timeout = 5
+        client.captureScreen(directory+'gradient_'+png)
 
 
-def tshot(c, rotation, *res):
+def tshot(conn, rotation, *res):
     (w, h, depth) = res
     d = 'tests/screenshots/'
     os.makedirs(d, exist_ok=True)
-    fname = f'{d}shot{w}x{h}_d{depth}_rot{rotation}.png'
-    shot(c, fname, rotation, *res)
+    fname = f'shot{w}x{h}_c{depth}_rot{rotation}.png'
+    shot(conn, d, fname, rotation, *res)
 
 
 @entrypoint
@@ -56,11 +65,11 @@ def main():
         connect_kwargs={
             "key_filename": v.keyfile(),
         },
-    ) as c:
-        build(c)
+    ) as conn:
+        build(conn)
         for rot in [0]:
-            tshot(c, rot, 320, 240, 8)
-            tshot(c, rot, 320, 240, 16)
-            tshot(c, rot, 320, 240, 32)
+            tshot(conn, rot, 320, 240, 8)
+            tshot(conn, rot, 320, 240, 16)
+            tshot(conn, rot, 320, 240, 32)
         for rot in [90, 180, 270]:
-            tshot(c, rot, 320, 240, 16)
+            tshot(conn, rot, 320, 240, 16)
