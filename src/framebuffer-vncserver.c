@@ -314,18 +314,16 @@ static void update_screen(void)
                             // TODO
                         }
 
+                        int x2 = x + xstep - 1;
                         if (x < varblock.min_i)
                             varblock.min_i = x;
-                        else
-                        {
-                            if (x > varblock.max_i)
-                                varblock.max_i = x;
+                        else if (x2 > varblock.max_i)
+                                varblock.max_i = x2;
 
-                            if (y > varblock.max_j)
-                                varblock.max_j = y;
-                            else if (y < varblock.min_j)
-                                varblock.min_j = y;
-                        }
+                        if (y > varblock.max_j)
+                            varblock.max_j = y;
+                        else if (y < varblock.min_j)
+                            varblock.min_j = y;
                     }
 
                     f++;
