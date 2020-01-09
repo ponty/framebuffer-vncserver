@@ -61,6 +61,7 @@ static int vnc_port = 5900;
 static int vnc_rotate = 0;
 static rfbScreenInfoPtr server;
 static size_t bytespp;
+static unsigned int bits_per_pixel;
 
 /* No idea, just copied from fbvncserver as part of the frame differerencing
  * algorithm.  I will probably be later rewriting all of this. */
@@ -97,6 +98,7 @@ static void init_fb(void)
 
     pixels = scrinfo.xres * scrinfo.yres;
     bytespp = scrinfo.bits_per_pixel / 8;
+    bits_per_pixel = scrinfo.bits_per_pixel;
 
     info_print("  xres=%d, yres=%d, xresv=%d, yresv=%d, xoffs=%d, yoffs=%d, bpp=%d\n",
                (int)scrinfo.xres, (int)scrinfo.yres,
@@ -259,7 +261,54 @@ static void update_screen(void)
     varblock.min_i = varblock.min_j = 9999;
     varblock.max_i = varblock.max_j = -1;
 
-    if (vnc_rotate == 0)
+    if (vnc_rotate == 0 && bits_per_pixel == 24)
+    {
+        uint8_t *f = (uint8_t *)fbmmap; /* -> framebuffer         */
+        uint8_t *c = (uint8_t *)fbbuf;  /* -> compare framebuffer */
+        uint8_t *r = (uint8_t *)vncbuf; /* -> remote framebuffer  */
+
+        int size = scrinfo.xres * scrinfo.yres * bytespp;
+        if (memcmp(fbmmap, fbbuf, size) != 0)
+        {
+            int y;
+            for (y = 0; y < (int)scrinfo.yres; y++)
+            {
+                int x;
+                for (x = 0; x < (int)scrinfo.xres; x++)
+                {
+                    uint32_t pixel = *(uint32_t*)f & 0x00FFFFFF;
+                    uint32_t comp = *(uint32_t*)c & 0x00FFFFFF;
+
+                    if (pixel != comp)
+                    {
+                        *(c+0) = *(f+0);
+                        *(c+1) = *(f+1);
+                        *(c+2) = *(f+2);
+                        uint32_t rem = PIXEL_FB_TO_RFB(pixel,
+                                                 varblock.r_offset, varblock.g_offset, varblock.b_offset);
+                        *(r+0) = (uint8_t)((rem >> 0 ) & 0xFF);
+                        *(r+1) = (uint8_t)((rem >> 8 ) & 0xFF);
+                        *(r+2) = (uint8_t)((rem >> 16) & 0xFF);
+
+                        if (x < varblock.min_i)
+                            varblock.min_i = x;
+                        else if (x > varblock.max_i)
+                                varblock.max_i = x;
+
+                        if (y > varblock.max_j)
+                            varblock.max_j = y;
+                        else if (y < varblock.min_j)
+                            varblock.min_j = y;
+                    }
+
+                    f+=bytespp;
+                    c+=bytespp;
+                    r+=bytespp;
+                }
+            }
+        }
+    }
+    else if (vnc_rotate == 0)
     {
         uint32_t *f = (uint32_t *)fbmmap; /* -> framebuffer         */
         uint32_t *c = (uint32_t *)fbbuf;  /* -> compare framebuffer */

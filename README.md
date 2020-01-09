@@ -11,9 +11,9 @@ Not implemented: file transfer, ..
 Working configurations:
 without rotation:
 - [ ]  1 bit/pixel
-- [ ]  8 bit/pixel
+- [x]  8 bit/pixel
 - [x]  16 bit/pixel
-- [ ]  24 bit/pixel
+- [x]  24 bit/pixel
 - [x]  32 bit/pixel
 
 with rotation:

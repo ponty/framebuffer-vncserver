@@ -67,9 +67,10 @@ def main():
         },
     ) as conn:
         build(conn)
+        for rot in [90, 180, 270]:
+            tshot(conn, rot, 320, 240, 16)
         for rot in [0]:
             tshot(conn, rot, 320, 240, 8)
             tshot(conn, rot, 320, 240, 16)
+            tshot(conn, rot, 320, 240, 24)
             tshot(conn, rot, 320, 240, 32)
-        for rot in [90, 180, 270]:
-            tshot(conn, rot, 320, 240, 16)
