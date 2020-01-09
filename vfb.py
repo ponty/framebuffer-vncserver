@@ -36,16 +36,26 @@ def shot(conn, directory, png, rotation, *res):
     start_server(conn, rotation)
     sleep(0.2)
 
-    conn.sudo('fb-test')
-    with api.connect('localhost:0') as client:
-        client.timeout = 5
-        client.captureScreen(directory+'fbtest_'+png)
+    if depth != 8:
+        conn.sudo('killall qmlscene', warn=True)
+        conn.sudo("qmlscene -platform linuxfb  &> /dev/null &", pty=False)
+        # sleep(5)
+        with api.connect('localhost:0') as client:
+            client.timeout = 5
+            client.captureScreen(directory+'qmlscene_'+png)
+        conn.sudo('killall qmlscene', warn=True)
 
-    conn.sudo(
-        f'python3 /vagrant/gradient.py --width {w} --height {h} --colorbit {depth}')
-    with api.connect('localhost:0') as client:
-        client.timeout = 5
-        client.captureScreen(directory+'gradient_'+png)
+    if depth>1:
+        conn.sudo('fb-test')
+        with api.connect('localhost:0') as client:
+            client.timeout = 5
+            client.captureScreen(directory+'fbtest_'+png)
+
+        conn.sudo(
+            f'python3 /vagrant/gradient.py --width {w} --height {h} --colorbit {depth}')
+        with api.connect('localhost:0') as client:
+            client.timeout = 5
+            client.captureScreen(directory+'gradient_'+png)
 
 
 def tshot(conn, rotation, *res):
@@ -70,6 +80,7 @@ def main():
         for rot in [90, 180, 270]:
             tshot(conn, rot, 320, 240, 16)
         for rot in [0]:
+            tshot(conn, rot, 320, 240, 1)
             tshot(conn, rot, 320, 240, 8)
             tshot(conn, rot, 320, 240, 16)
             tshot(conn, rot, 320, 240, 24)

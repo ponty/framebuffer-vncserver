@@ -10,7 +10,7 @@ Not implemented: file transfer, ..
 
 Working configurations:
 without rotation:
-- [ ]  1 bit/pixel
+- [x]  1 bit/pixel
 - [x]  8 bit/pixel
 - [x]  16 bit/pixel
 - [x]  24 bit/pixel

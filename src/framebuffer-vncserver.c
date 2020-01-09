@@ -62,6 +62,7 @@ static int vnc_rotate = 0;
 static rfbScreenInfoPtr server;
 static size_t bytespp;
 static unsigned int bits_per_pixel;
+static unsigned int frame_size;
 
 /* No idea, just copied from fbvncserver as part of the frame differerencing
  * algorithm.  I will probably be later rewriting all of this. */
@@ -99,6 +100,7 @@ static void init_fb(void)
     pixels = scrinfo.xres * scrinfo.yres;
     bytespp = scrinfo.bits_per_pixel / 8;
     bits_per_pixel = scrinfo.bits_per_pixel;
+    frame_size = pixels * bits_per_pixel / 8;
 
     info_print("  xres=%d, yres=%d, xresv=%d, yresv=%d, xoffs=%d, yoffs=%d, bpp=%d\n",
                (int)scrinfo.xres, (int)scrinfo.yres,
@@ -110,7 +112,7 @@ static void init_fb(void)
                (int)scrinfo.green.offset, (int)scrinfo.green.length,
                (int)scrinfo.blue.offset, (int)scrinfo.blue.length);
 
-    fbmmap = mmap(NULL, pixels * bytespp, PROT_READ, MAP_SHARED, fbfd, 0);
+    fbmmap = mmap(NULL, frame_size, PROT_READ, MAP_SHARED, fbfd, 0);
 
     if (fbmmap == MAP_FAILED)
     {
@@ -184,18 +186,21 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch)
 {
     info_print("Initializing server...\n");
 
+    int rbytespp = bits_per_pixel==1 ? 1: bytespp;
+    int rframe_size =  bits_per_pixel==1 ? frame_size * 8 : frame_size;
     /* Allocate the VNC server buffer to be managed (not manipulated) by
      * libvncserver. */
-    vncbuf = calloc(scrinfo.xres * scrinfo.yres, bytespp);
+    vncbuf = malloc(rframe_size);
     assert(vncbuf != NULL);
+    memset(vncbuf, bits_per_pixel==1 ? 0xFF: 0x00, rframe_size); 
 
     /* Allocate the comparison buffer for detecting drawing updates from frame
      * to frame. */
-    fbbuf = calloc(scrinfo.xres * scrinfo.yres, bytespp);
+    fbbuf = calloc(frame_size, 1);
     assert(fbbuf != NULL);
 
     /* TODO: This assumes scrinfo.bits_per_pixel is 16. */
-    server = rfbGetScreen(&argc, argv, scrinfo.xres, scrinfo.yres, BITS_PER_SAMPLE, SAMPLES_PER_PIXEL, bytespp);
+    server = rfbGetScreen(&argc, argv, scrinfo.xres, scrinfo.yres, BITS_PER_SAMPLE, SAMPLES_PER_PIXEL, rbytespp);
     assert(server != NULL);
 
     server->desktopName = "framebuffer";
@@ -267,8 +272,7 @@ static void update_screen(void)
         uint8_t *c = (uint8_t *)fbbuf;  /* -> compare framebuffer */
         uint8_t *r = (uint8_t *)vncbuf; /* -> remote framebuffer  */
 
-        int size = scrinfo.xres * scrinfo.yres * bytespp;
-        if (memcmp(fbmmap, fbbuf, size) != 0)
+        if (memcmp(fbmmap, fbbuf, frame_size) != 0)
         {
             int y;
             for (y = 0; y < (int)scrinfo.yres; y++)
@@ -308,14 +312,59 @@ static void update_screen(void)
             }
         }
     }
+    else if (vnc_rotate == 0 && bits_per_pixel == 1)
+    {
+        uint8_t *f = (uint8_t *)fbmmap; /* -> framebuffer         */
+        uint8_t *c = (uint8_t *)fbbuf;  /* -> compare framebuffer */
+        uint8_t *r = (uint8_t *)vncbuf; /* -> remote framebuffer  */
+
+        int xstep = 8;
+        if (memcmp(fbmmap, fbbuf, frame_size) != 0)
+        {
+            int y;
+            for (y = 0; y < (int)scrinfo.yres; y++)
+            {
+                int x;
+                for (x = 0; x < (int)scrinfo.xres; x+=xstep)
+                {
+                    uint8_t pixels = *f;
+
+                    if (pixels != *c)
+                    {
+                        *c = pixels;
+
+                        for (int bit = 0; bit < 8; bit++)
+                        {
+                            // *(r+bit) = ((pixels >> (7-bit)) & 0x1) ? 0xFF : 0x00;
+                            *(r+bit) = ((pixels >> (7-bit)) & 0x1) ? 0x00 : 0xFF;
+                        }
+   
+                        int x2 = x + xstep - 1;
+                        if (x < varblock.min_i)
+                            varblock.min_i = x;
+                        else if (x2 > varblock.max_i)
+                                varblock.max_i = x2;
+
+                        if (y > varblock.max_j)
+                            varblock.max_j = y;
+                        else if (y < varblock.min_j)
+                            varblock.min_j = y;
+                    }
+
+                    f+=1;
+                    c+=1;
+                    r+=8;
+                }
+            }
+        }
+    }
     else if (vnc_rotate == 0)
     {
         uint32_t *f = (uint32_t *)fbmmap; /* -> framebuffer         */
         uint32_t *c = (uint32_t *)fbbuf;  /* -> compare framebuffer */
         uint32_t *r = (uint32_t *)vncbuf; /* -> remote framebuffer  */
 
-        int size = scrinfo.xres * scrinfo.yres * bytespp;
-        if (memcmp(fbmmap, fbbuf, size) != 0)
+        if (memcmp(fbmmap, fbbuf, frame_size) != 0)
         {
             //        memcpy(fbbuf, fbmmap, size);
 
@@ -405,8 +454,7 @@ static void update_screen(void)
             break;
         }
 
-        int size = scrinfo.xres * scrinfo.yres * bytespp;
-        if (memcmp(fbmmap, fbbuf, size) != 0)
+        if (memcmp(fbmmap, fbbuf, frame_size) != 0)
         {
             int y;
             for (y = 0; y < (int)scrinfo.yres; y++)
