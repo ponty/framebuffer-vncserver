@@ -51,12 +51,13 @@ Using qmake:
 ### command-line help 
 
 	# ./framebuffer-vncserver -h
-		framebuffer-vncserver [-f device] [-p port] [-t touchscreen] [-k keyboard] [-r rotation] [-h]
+		framebuffer-vncserver [-f device] [-p port] [-t touchscreen] [-k keyboard] [-r rotation] [-v] [-h]
 		-p port: VNC port, default is 5900
 		-f device: framebuffer device node, default is /dev/fb0
 		-k device: keyboard device node (example: /dev/input/event0)
 		-t device: touchscreen device node (example:/dev/input/event2)
 		-r degrees: framebuffer rotation, default is 0
+		-v: verbose
 		-h: print this help
 
 ## Run on startup as service
