@@ -42,7 +42,7 @@
 #include "logging.h"
 
 /*****************************************************************************/
-//#define LOG_FPS
+#define LOG_FPS
 
 #define BITS_PER_SAMPLE 5
 #define SAMPLES_PER_PIXEL 2
@@ -254,13 +254,16 @@ int timeToLogFPS()
 static void update_screen(void)
 {
 #ifdef LOG_FPS
-    static int frames = 0;
-    frames++;
-    if (timeToLogFPS())
+    if (verbose)
     {
-        double fps = frames / LOG_TIME;
-        info_print("  fps: %f\n", fps);
-        frames = 0;
+        static int frames = 0;
+        frames++;
+        if (timeToLogFPS())
+        {
+            double fps = frames / LOG_TIME;
+            info_print("  fps: %f\n", fps);
+            frames = 0;
+        }
     }
 #endif
 
