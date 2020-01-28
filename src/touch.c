@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <stdbool.h>
 #include <unistd.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
@@ -100,78 +100,37 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
 
     memset(&ev, 0, sizeof(ev));
 
+    bool sendPos;
+    bool sendTouch;
+    int trkIdValue;
+    int touchValue;
     switch(mouseAction)
     {
     case MousePress:
-    {
-        // Then send a ABS_MT_TRACKING_ID
-        gettimeofday(&ev.time, 0);
-        ev.type = EV_ABS;
-        ev.code = ABS_MT_TRACKING_ID;
-        ev.value = ++trkg_id;
-        if (write(touchfd, &ev, sizeof(ev)) < 0)
-        {
-            error_print("write event failed, %s\n", strerror(errno));
-        }
-
-        // Then send a ABS_MT_POSITION_X
-        gettimeofday(&ev.time, 0);
-        ev.type = EV_ABS;
-        ev.code = ABS_MT_POSITION_X;
-        ev.value = xin;
-        if (write(touchfd, &ev, sizeof(ev)) < 0)
-        {
-            error_print("write event failed, %s\n", strerror(errno));
-        }
-
-        // Then send a ABS_MT_POSITION_Y
-        gettimeofday(&ev.time, 0);
-        ev.type = EV_ABS;
-        ev.code = ABS_MT_POSITION_Y;
-        ev.value = yin;
-        if (write(touchfd, &ev, sizeof(ev)) < 0)
-        {
-            error_print("write event failed, %s\n", strerror(errno));
-        }
-
-        // Then send a BTN_TOUCH
-        gettimeofday(&ev.time, 0);
-        ev.type = EV_KEY;
-        ev.code = BTN_TOUCH;
-        ev.value = 1;
-        if (write(touchfd, &ev, sizeof(ev)) < 0)
-        {
-            error_print("write event failed, %s\n", strerror(errno));
-        }
-    }
+        sendPos = true;
+        sendTouch = true;
+        trkIdValue = ++trkg_id;
+        touchValue = 1;
         break;
     case MouseRelease:
+        sendPos = false;
+        sendTouch = true;
+        trkIdValue = -1;
+        touchValue = 0;
+        break;
+    case MouseDrag:
+        sendPos = true;
+        sendTouch = false;
+        break;
+    }
+
+    if (sendTouch)
     {
         // Then send a ABS_MT_TRACKING_ID
         gettimeofday(&ev.time, 0);
         ev.type = EV_ABS;
         ev.code = ABS_MT_TRACKING_ID;
-        ev.value = -1;
-        if (write(touchfd, &ev, sizeof(ev)) < 0)
-        {
-            error_print("write event failed, %s\n", strerror(errno));
-        }
-
-        // Then send a ABS_MT_POSITION_X
-        gettimeofday(&ev.time, 0);
-        ev.type = EV_ABS;
-        ev.code = ABS_MT_POSITION_X;
-        ev.value = xin;
-        if (write(touchfd, &ev, sizeof(ev)) < 0)
-        {
-            error_print("write event failed, %s\n", strerror(errno));
-        }
-
-        // Then send a ABS_MT_POSITION_Y
-        gettimeofday(&ev.time, 0);
-        ev.type = EV_ABS;
-        ev.code = ABS_MT_POSITION_Y;
-        ev.value = yin;
+        ev.value = trkIdValue;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
         {
             error_print("write event failed, %s\n", strerror(errno));
@@ -181,36 +140,33 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
         gettimeofday(&ev.time, 0);
         ev.type = EV_KEY;
         ev.code = BTN_TOUCH;
-        ev.value = 0;
+        ev.value = touchValue;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
         {
             error_print("write event failed, %s\n", strerror(errno));
         }
     }
-        break;
-    case MouseDrag:
-    {
-        // Then send a ABS_MT_POSITION_X
-        gettimeofday(&ev.time, 0);
-        ev.type = EV_ABS;
-        ev.code = ABS_MT_POSITION_X;
-        ev.value = xin;
-        if (write(touchfd, &ev, sizeof(ev)) < 0)
-        {
-            error_print("write event failed, %s\n", strerror(errno));
-        }
 
-        // Then send a ABS_MT_POSITION_Y
-        gettimeofday(&ev.time, 0);
-        ev.type = EV_ABS;
-        ev.code = ABS_MT_POSITION_Y;
-        ev.value = yin;
-        if (write(touchfd, &ev, sizeof(ev)) < 0)
-        {
-            error_print("write event failed, %s\n", strerror(errno));
-        }
+    if (sendPos)
+    {
+    // Then send a ABS_MT_POSITION_X
+    gettimeofday(&ev.time, 0);
+    ev.type = EV_ABS;
+    ev.code = ABS_MT_POSITION_X;
+    ev.value = xin;
+    if (write(touchfd, &ev, sizeof(ev)) < 0)
+    {
+        error_print("write event failed, %s\n", strerror(errno));
     }
-        break;
+
+    // Then send a ABS_MT_POSITION_Y
+    gettimeofday(&ev.time, 0);
+    ev.type = EV_ABS;
+    ev.code = ABS_MT_POSITION_Y;
+    ev.value = yin;
+    if (write(touchfd, &ev, sizeof(ev)) < 0)
+    {
+        error_print("write event failed, %s\n", strerror(errno));
     }
 
     // Then send the X
@@ -231,6 +187,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
     if (write(touchfd, &ev, sizeof(ev)) < 0)
     {
         error_print("write event failed, %s\n", strerror(errno));
+    }
     }
 
     // Finally send the SYN
