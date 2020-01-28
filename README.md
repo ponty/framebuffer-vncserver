@@ -77,6 +77,7 @@ https://cateee.net/lkddb/web-lkddb/FB_VIRTUAL.html
 
 Local computer:
 	
+	sudo apt install vagrant virtualbox xtightvncviewer
 	vagrant up
 	vncviewer localhost &
 	vagrant ssh
@@ -84,15 +85,16 @@ Local computer:
 Inside vagrant box:
 
 	sudo su
+	cd /home/vagrant/buildc/
 
 	# build framebuffer-vncserver
-	cd /home/vagrant/buildc/;make
+	make
 
 	# set resolution, color depth
     fbset -g 640 480 640 480 16
 
 	# restart framebuffer-vncserver
-	killall framebuffer-vncserver;/home/vagrant/buildc/framebuffer-vncserver -t /dev/input/ms -k /dev/input/kbd &
+	killall framebuffer-vncserver;./framebuffer-vncserver -t /dev/input/ms -k /dev/input/kbd &
 
 	# set test pattern or ..
 	fb-test
@@ -101,9 +103,21 @@ Inside vagrant box:
 	rect
 	
 	# display a GUI or ...
+	export QT_QPA_PLATFORM=linuxfb
+	export QT_QPA_EVDEV_TOUCHSCREEN_PARAMETERS=/dev/input/ms:abs
+	export QT_QPA_EVDEV_MOUSE_PARAMETERS=
+	export QT_QPA_EVDEV_KEYBOARD_PARAMETERS=/dev/input/kbd:grab=1
+	export QT_QPA_EGLFS_NO_LIBINPUT=1
+
+	export QT_QPA_PLATFORM=linuxfb
+	export QT_QPA_EVDEV_TOUCHSCREEN_PARAMETERS=
+	export QT_QPA_EVDEV_MOUSE_PARAMETERS=
+	export QT_QPA_EVDEV_KEYBOARD_PARAMETERS=
+	export QT_QPA_EGLFS_NO_LIBINPUT=
+	qmlscene
 	qmlscene -platform linuxfb -plugin evdevmouse:/dev/input/ms:abs -plugin evdevkeyboard:/dev/input/kbd:grab=1
 
-Automatic test, generates patterns with different resolutions and color depth:
+Automatic test on local computer, generates patterns with different resolutions and color depths:
 	
 	pip3 install fabric vncdotool python-vagrant entrypoint2
 	python3 vfb.py
