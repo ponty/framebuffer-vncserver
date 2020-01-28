@@ -39,7 +39,7 @@ def shot(conn, directory, png, rotation, *res):
     if depth != 8:
         conn.sudo('killall qmlscene', warn=True)
         conn.sudo("qmlscene -platform linuxfb  &> /dev/null &", pty=False)
-        # sleep(5)
+        sleep(0.2)
         with api.connect('localhost:0') as client:
             client.timeout = 5
             client.captureScreen(directory+'qmlscene_'+png)
