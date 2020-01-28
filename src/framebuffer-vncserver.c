@@ -142,7 +142,6 @@ static void keyevent(rfbBool down, rfbKeySym key, rfbClientPtr cl)
         injectKeyEvent(scancode, down);
     }
 }
-
 static void ptrevent(int buttonMask, int x, int y, rfbClientPtr cl)
 {
     /* Indicates either pointer movement or a pointer button press or release. The pointer is
@@ -161,23 +160,20 @@ a press and release of button 5.
     {
         if (pressed == 1)
         {
-            // move
-            injectTouchEvent(-1, x, y, &scrinfo);
+            injectTouchEvent(MouseDrag, x, y, &scrinfo);
         }
         else
         {
-            // press
             pressed = 1;
-            injectTouchEvent(1, x, y, &scrinfo);
+            injectTouchEvent(MousePress, x, y, &scrinfo);
         }
     }
     if (buttonMask == 0)
     {
         if (pressed == 1)
         {
-            // release
             pressed = 0;
-            injectTouchEvent(0, x, y, &scrinfo);
+            injectTouchEvent(MouseRelease, x, y, &scrinfo);
         }
     }
 }
