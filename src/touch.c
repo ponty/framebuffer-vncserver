@@ -106,7 +106,7 @@ void injectTouchEvent(int down, int x, int y, struct fb_var_screeninfo *scrinfo)
         gettimeofday(&ev.time, 0);
         ev.type = EV_ABS;
         ev.code = ABS_MT_TRACKING_ID;
-        ev.value = ++trkg_id;
+        ev.value = down==0? -1 : ++trkg_id;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
         {
             error_print("write event failed, %s\n", strerror(errno));
@@ -142,11 +142,23 @@ void injectTouchEvent(int down, int x, int y, struct fb_var_screeninfo *scrinfo)
             error_print("write event failed, %s\n", strerror(errno));
         }
     } else {
-        // ABS_MT_TRACKING_ID
+        // mouse drag
+
+        // Then send a ABS_MT_POSITION_X
         gettimeofday(&ev.time, 0);
         ev.type = EV_ABS;
-        ev.code = ABS_MT_TRACKING_ID;
-        ev.value = -1;
+        ev.code = ABS_MT_POSITION_X;
+        ev.value = xin;
+        if (write(touchfd, &ev, sizeof(ev)) < 0)
+        {
+            error_print("write event failed, %s\n", strerror(errno));
+        }
+
+        // Then send a ABS_MT_POSITION_Y
+        gettimeofday(&ev.time, 0);
+        ev.type = EV_ABS;
+        ev.code = ABS_MT_POSITION_Y;
+        ev.value = yin;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
         {
             error_print("write event failed, %s\n", strerror(errno));
