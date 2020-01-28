@@ -28,6 +28,7 @@ static int touchfd = -1;
 static int xmin, xmax;
 static int ymin, ymax;
 static int rotate;
+static int trkg_id = -1;
 
 int init_touch(const char *touch_device, int vnc_rotate)
 {
@@ -101,11 +102,51 @@ void injectTouchEvent(int down, int x, int y, struct fb_var_screeninfo *scrinfo)
 
     if (down >= 0)
     {
+        // Then send a ABS_MT_TRACKING_ID
+        gettimeofday(&ev.time, 0);
+        ev.type = EV_ABS;
+        ev.code = ABS_MT_TRACKING_ID;
+        ev.value = ++trkg_id;
+        if (write(touchfd, &ev, sizeof(ev)) < 0)
+        {
+            error_print("write event failed, %s\n", strerror(errno));
+        }
+
+        // Then send a ABS_MT_POSITION_X
+        gettimeofday(&ev.time, 0);
+        ev.type = EV_ABS;
+        ev.code = ABS_MT_POSITION_X;
+        ev.value = xin;
+        if (write(touchfd, &ev, sizeof(ev)) < 0)
+        {
+            error_print("write event failed, %s\n", strerror(errno));
+        }
+
+        // Then send a ABS_MT_POSITION_Y
+        gettimeofday(&ev.time, 0);
+        ev.type = EV_ABS;
+        ev.code = ABS_MT_POSITION_Y;
+        ev.value = yin;
+        if (write(touchfd, &ev, sizeof(ev)) < 0)
+        {
+            error_print("write event failed, %s\n", strerror(errno));
+        }
+
         // Then send a BTN_TOUCH
         gettimeofday(&ev.time, 0);
         ev.type = EV_KEY;
         ev.code = BTN_TOUCH;
         ev.value = down;
+        if (write(touchfd, &ev, sizeof(ev)) < 0)
+        {
+            error_print("write event failed, %s\n", strerror(errno));
+        }
+    } else {
+        // ABS_MT_TRACKING_ID
+        gettimeofday(&ev.time, 0);
+        ev.type = EV_ABS;
+        ev.code = ABS_MT_TRACKING_ID;
+        ev.value = -1;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
         {
             error_print("write event failed, %s\n", strerror(errno));
