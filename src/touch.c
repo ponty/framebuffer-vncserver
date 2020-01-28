@@ -122,6 +122,9 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
         sendPos = true;
         sendTouch = false;
         break;
+    default:
+        error_print("invalid mouse action\n");
+        exit(EXIT_FAILURE);
     }
 
     if (sendTouch)

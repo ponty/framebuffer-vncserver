@@ -75,7 +75,7 @@ void injectKeyEvent(uint16_t code, uint16_t value)
     debug_print("injectKey (%d, %d)\n", code, value);
 }
 
-int keysym2scancode(rfbBool down, rfbKeySym key, rfbClientPtr cl)
+int keysym2scancode(rfbKeySym key, rfbClientPtr cl)
 {
     int scancode = 0;
 

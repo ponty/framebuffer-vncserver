@@ -65,6 +65,8 @@ static unsigned int bits_per_pixel;
 static unsigned int frame_size;
 int verbose = 0;
 
+#define UNUSED(x) (void)(x)
+
 /* No idea, just copied from fbvncserver as part of the frame differerencing
  * algorithm.  I will probably be later rewriting all of this. */
 static struct varblock_t
@@ -137,13 +139,14 @@ static void keyevent(rfbBool down, rfbKeySym key, rfbClientPtr cl)
 
     debug_print("Got keysym: %04x (down=%d)\n", (unsigned int)key, (int)down);
 
-    if ((scancode = keysym2scancode(down, key, cl)))
+    if ((scancode = keysym2scancode(key, cl)))
     {
         injectKeyEvent(scancode, down);
     }
 }
 static void ptrevent(int buttonMask, int x, int y, rfbClientPtr cl)
 {
+    UNUSED(cl);
     /* Indicates either pointer movement or a pointer button press or release. The pointer is
 now at (x-position, y-position), and the current state of buttons 1 to 8 are represented
 by bits 0 to 7 of button-mask respectively, 0 meaning up, 1 meaning down (pressed).
@@ -492,6 +495,9 @@ static void update_screen(void)
                             x2 = y;
                             y2 = scrinfo.xres - 1 - x;
                             break;
+                        default:
+                            error_print("rotation is invalid\n");
+                            exit(EXIT_FAILURE);
                         }
 
                         r[y2 * server->width + x2] = PIXEL_FB_TO_RFB(pixel, varblock.r_offset, varblock.g_offset, varblock.b_offset);
