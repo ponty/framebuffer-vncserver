@@ -127,6 +127,7 @@ static void cleanup_fb(void)
     if (fbfd != -1)
     {
         close(fbfd);
+        fbfd = -1;
     }
 }
 
