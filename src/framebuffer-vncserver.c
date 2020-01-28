@@ -187,13 +187,13 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch)
 {
     info_print("Initializing server...\n");
 
-    int rbytespp = bits_per_pixel==1 ? 1: bytespp;
-    int rframe_size =  bits_per_pixel==1 ? frame_size * 8 : frame_size;
+    int rbytespp = bits_per_pixel == 1 ? 1 : bytespp;
+    int rframe_size = bits_per_pixel == 1 ? frame_size * 8 : frame_size;
     /* Allocate the VNC server buffer to be managed (not manipulated) by
      * libvncserver. */
     vncbuf = malloc(rframe_size);
     assert(vncbuf != NULL);
-    memset(vncbuf, bits_per_pixel==1 ? 0xFF: 0x00, rframe_size); 
+    memset(vncbuf, bits_per_pixel == 1 ? 0xFF : 0x00, rframe_size);
 
     /* Allocate the comparison buffer for detecting drawing updates from frame
      * to frame. */
@@ -284,24 +284,24 @@ static void update_screen(void)
                 int x;
                 for (x = 0; x < (int)scrinfo.xres; x++)
                 {
-                    uint32_t pixel = *(uint32_t*)f & 0x00FFFFFF;
-                    uint32_t comp = *(uint32_t*)c & 0x00FFFFFF;
+                    uint32_t pixel = *(uint32_t *)f & 0x00FFFFFF;
+                    uint32_t comp = *(uint32_t *)c & 0x00FFFFFF;
 
                     if (pixel != comp)
                     {
-                        *(c+0) = *(f+0);
-                        *(c+1) = *(f+1);
-                        *(c+2) = *(f+2);
+                        *(c + 0) = *(f + 0);
+                        *(c + 1) = *(f + 1);
+                        *(c + 2) = *(f + 2);
                         uint32_t rem = PIXEL_FB_TO_RFB(pixel,
-                                                 varblock.r_offset, varblock.g_offset, varblock.b_offset);
-                        *(r+0) = (uint8_t)((rem >> 0 ) & 0xFF);
-                        *(r+1) = (uint8_t)((rem >> 8 ) & 0xFF);
-                        *(r+2) = (uint8_t)((rem >> 16) & 0xFF);
+                                                       varblock.r_offset, varblock.g_offset, varblock.b_offset);
+                        *(r + 0) = (uint8_t)((rem >> 0) & 0xFF);
+                        *(r + 1) = (uint8_t)((rem >> 8) & 0xFF);
+                        *(r + 2) = (uint8_t)((rem >> 16) & 0xFF);
 
                         if (x < varblock.min_i)
                             varblock.min_i = x;
                         else if (x > varblock.max_i)
-                                varblock.max_i = x;
+                            varblock.max_i = x;
 
                         if (y > varblock.max_j)
                             varblock.max_j = y;
@@ -309,9 +309,9 @@ static void update_screen(void)
                             varblock.min_j = y;
                     }
 
-                    f+=bytespp;
-                    c+=bytespp;
-                    r+=bytespp;
+                    f += bytespp;
+                    c += bytespp;
+                    r += bytespp;
                 }
             }
         }
@@ -329,7 +329,7 @@ static void update_screen(void)
             for (y = 0; y < (int)scrinfo.yres; y++)
             {
                 int x;
-                for (x = 0; x < (int)scrinfo.xres; x+=xstep)
+                for (x = 0; x < (int)scrinfo.xres; x += xstep)
                 {
                     uint8_t pixels = *f;
 
@@ -340,14 +340,14 @@ static void update_screen(void)
                         for (int bit = 0; bit < 8; bit++)
                         {
                             // *(r+bit) = ((pixels >> (7-bit)) & 0x1) ? 0xFF : 0x00;
-                            *(r+bit) = ((pixels >> (7-bit)) & 0x1) ? 0x00 : 0xFF;
+                            *(r + bit) = ((pixels >> (7 - bit)) & 0x1) ? 0x00 : 0xFF;
                         }
-   
+
                         int x2 = x + xstep - 1;
                         if (x < varblock.min_i)
                             varblock.min_i = x;
                         else if (x2 > varblock.max_i)
-                                varblock.max_i = x2;
+                            varblock.max_i = x2;
 
                         if (y > varblock.max_j)
                             varblock.max_j = y;
@@ -355,9 +355,9 @@ static void update_screen(void)
                             varblock.min_j = y;
                     }
 
-                    f+=1;
-                    c+=1;
-                    r+=8;
+                    f += 1;
+                    c += 1;
+                    r += 8;
                 }
             }
         }
@@ -420,7 +420,7 @@ static void update_screen(void)
                         if (x < varblock.min_i)
                             varblock.min_i = x;
                         else if (x2 > varblock.max_i)
-                                varblock.max_i = x2;
+                            varblock.max_i = x2;
 
                         if (y > varblock.max_j)
                             varblock.max_j = y;
