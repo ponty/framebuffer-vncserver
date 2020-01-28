@@ -77,9 +77,13 @@ https://cateee.net/lkddb/web-lkddb/FB_VIRTUAL.html
 
 Local computer:
 	
+	# install
 	sudo apt install vagrant virtualbox xtightvncviewer
+	
+	# after framebuffer-vncserver start
+	vncviewer localhost
+
 	vagrant up
-	vncviewer localhost &
 	vagrant ssh
 
 Inside vagrant box:
@@ -103,21 +107,107 @@ Inside vagrant box:
 	rect
 	
 	# display a GUI or ...
-	export QT_QPA_PLATFORM=linuxfb
-	export QT_QPA_EVDEV_TOUCHSCREEN_PARAMETERS=/dev/input/ms:abs
-	export QT_QPA_EVDEV_MOUSE_PARAMETERS=
-	export QT_QPA_EVDEV_KEYBOARD_PARAMETERS=/dev/input/kbd:grab=1
-	export QT_QPA_EGLFS_NO_LIBINPUT=1
-
-	export QT_QPA_PLATFORM=linuxfb
-	export QT_QPA_EVDEV_TOUCHSCREEN_PARAMETERS=
-	export QT_QPA_EVDEV_MOUSE_PARAMETERS=
-	export QT_QPA_EVDEV_KEYBOARD_PARAMETERS=
-	export QT_QPA_EGLFS_NO_LIBINPUT=
-	qmlscene
 	qmlscene -platform linuxfb -plugin evdevmouse:/dev/input/ms:abs -plugin evdevkeyboard:/dev/input/kbd:grab=1
 
 Automatic test on local computer, generates patterns with different resolutions and color depths:
 	
 	pip3 install fabric vncdotool python-vagrant entrypoint2
 	python3 vfb.py
+
+## Testing single-touch
+
+	$ (evtest /dev/input/event0 &) ;./framebuffer-vncserver -t /dev/input/event0 -v
+	...
+	Initializing touch device /dev/input/event0 ...
+	x:(0 4095)  y:(0 4095) 
+	...
+	Supported events:
+	Event type 0 (EV_SYN)
+	Event type 1 (EV_KEY)
+		Event code 330 (BTN_TOUCH)
+	Event type 3 (EV_ABS)
+		Event code 0 (ABS_X)
+		Value   1970
+		Min        0
+		Max     4095
+		Event code 1 (ABS_Y)
+		Value   1745
+		Min        0
+		Max     4095
+		Event code 24 (ABS_PRESSURE)
+		Value      0
+		Min        0
+		Max      255
+	...
+	Got ptrevent: 0001 (x=186, y=570)
+	Event: time 1580221917.655639, type 1 (EV_KEY), code 330 (BTN_TOUCH), value 1
+	Event: time 1580221917.655639, type 3 (EV_ABS), code 0 (ABS_X), value 1586
+	Event: time 1580221917.655639, type 3 (EV_ABS), code 1 (ABS_Y), value 2733
+	Event: time 1580221917.655639, -------------- SYN_REPORT ------------
+	injectTouchEvent (screen(186,570) -> touch(1586,2733), mouse=1)
+	...
+	Got ptrevent: 0000 (x=186, y=570)
+	Event: time 1580221918.516897, type 1 (EV_KEY), code 330 (BTN_TOUCH), value 0
+	Event: time 1580221918.516897, -------------- SYN_REPORT ------------
+	injectTouchEvent (screen(186,570) -> touch(1586,2733), mouse=0)
+
+## Testing multi-touch
+
+	$ (evtest /dev/input/event2 &) ;./framebuffer-vncserver -t /dev/input/event2 -v
+	...
+	Supported events:
+	Event type 0 (EV_SYN)
+	Event type 1 (EV_KEY)
+		Event code 330 (BTN_TOUCH)
+	Event type 3 (EV_ABS)
+		Event code 0 (ABS_X)
+		Value    245
+		Min        0
+		Max      480
+		Event code 1 (ABS_Y)
+		Value    485
+		Min        0
+		Max      854
+		Event code 47 (ABS_MT_SLOT)
+		Value      4
+		Min        0
+		Max        4
+		Event code 48 (ABS_MT_TOUCH_MAJOR)
+		Value      0
+		Min        0
+		Max      255
+		Event code 50 (ABS_MT_WIDTH_MAJOR)
+		Value      0
+		Min        0
+		Max      255
+		Event code 53 (ABS_MT_POSITION_X)
+		Value      0
+		Min        0
+		Max      480
+		Event code 54 (ABS_MT_POSITION_Y)
+		Value      0
+		Min        0
+		Max      854
+		Event code 57 (ABS_MT_TRACKING_ID)
+		Value      0
+		Min        0
+		Max    65535
+	...
+	Initializing touch device /dev/input/event2 ...
+	x:(0 480)  y:(0 854) 
+	...
+	Got ptrevent: 0001 (x=237, y=528)
+	Event: time 1580221680.870277, type 3 (EV_ABS), code 57 (ABS_MT_TRACKING_ID), value 0
+	Event: time 1580221680.870277, type 1 (EV_KEY), code 330 (BTN_TOUCH), value 1
+	Event: time 1580221680.870277, type 3 (EV_ABS), code 53 (ABS_MT_POSITION_X), value 237
+	Event: time 1580221680.870277, type 3 (EV_ABS), code 54 (ABS_MT_POSITION_Y), value 528
+	Event: time 1580221680.870277, type 3 (EV_ABS), code 0 (ABS_X), value 237
+	Event: time 1580221680.870277, type 3 (EV_ABS), code 1 (ABS_Y), value 528
+	Event: time 1580221680.870277, -------------- SYN_REPORT ------------
+	injectTouchEvent (screen(237,528) -> touch(237,528), mouse=1)
+	...
+	Got ptrevent: 0000 (x=237, y=528)
+	Event: time 1580221681.190716, type 3 (EV_ABS), code 57 (ABS_MT_TRACKING_ID), value -1
+	Event: time 1580221681.190716, type 1 (EV_KEY), code 330 (BTN_TOUCH), value 0
+	Event: time 1580221681.190716, -------------- SYN_REPORT ------------
+	injectTouchEvent (screen(237,528) -> touch(237,528), mouse=0)
