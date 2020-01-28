@@ -435,7 +435,7 @@ static void update_screen(void)
             }
         }
     }
-    else
+    else if (bits_per_pixel == 16)
     {
         uint16_t *f = (uint16_t *)fbmmap; /* -> framebuffer         */
         uint16_t *c = (uint16_t *)fbbuf;  /* -> compare framebuffer */
@@ -522,6 +522,12 @@ static void update_screen(void)
             }
         }
     }
+    else
+    {
+        error_print("not supported color depth or rotation\n");
+        exit(EXIT_FAILURE);
+    }
+
     if (varblock.min_i < 9999)
     {
         if (varblock.max_i < 0)
