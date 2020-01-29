@@ -156,7 +156,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
         gettimeofday(&ev.time, 0);
         ev.type = EV_ABS;
         ev.code = ABS_MT_POSITION_X;
-        ev.value = xin;
+        ev.value = x;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
         {
             error_print("write event failed, %s\n", strerror(errno));
@@ -166,7 +166,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
         gettimeofday(&ev.time, 0);
         ev.type = EV_ABS;
         ev.code = ABS_MT_POSITION_Y;
-        ev.value = yin;
+        ev.value = y;
         if (write(touchfd, &ev, sizeof(ev)) < 0)
         {
             error_print("write event failed, %s\n", strerror(errno));
