@@ -9,6 +9,7 @@ Implemented features: remote display, touchscreen, keyboard, rotation
 Not implemented: file transfer, ..
 
 Working configurations:
+
 without rotation:
 - [x]  1 bit/pixel
 - [x]  8 bit/pixel
@@ -109,10 +110,23 @@ Inside vagrant box:
 	# display a GUI or ...
 	qmlscene -platform linuxfb -plugin evdevmouse:/dev/input/ms:abs -plugin evdevkeyboard:/dev/input/kbd:grab=1
 
-Automatic test on local computer, generates patterns with different resolutions and color depths:
+### Automatic test 
+
+This generates patterns with different resolutions and color depths (on local computer):
 	
 	pip3 install fabric vncdotool python-vagrant entrypoint2
 	python3 vfb.py
+
+|rotation|color|  fbtest                               |  qmlscene                               | gradient                                |
+|-------:|----:|---------------------------------------|-----------------------------------------|-----------------------------------------|
+|      0 |   1 |                                       |![](/img/qmlscene_160x120_c1_rot0.png)   |                                         |
+|      0 |   8 |![](/img/fbtest_160x120_c8_rot0.png)   |                                         |![](/img/gradient_160x120_c8_rot0.png)   |
+|      0 |  16 |![](/img/fbtest_160x120_c16_rot0.png)  |![](/img/qmlscene_160x120_c16_rot0.png)  |![](/img/gradient_160x120_c16_rot0.png)  |
+|      0 |  24 |![](/img/fbtest_160x120_c24_rot0.png)  |![](/img/qmlscene_160x120_c24_rot0.png)  |![](/img/gradient_160x120_c24_rot0.png)  |
+|      0 |  32 |![](/img/fbtest_160x120_c32_rot0.png)  |![](/img/qmlscene_160x120_c32_rot0.png)  |![](/img/gradient_160x120_c32_rot0.png)  |
+|     90 |  16 |![](/img/fbtest_160x120_c16_rot90.png) |![](/img/qmlscene_160x120_c16_rot90.png) |![](/img/gradient_160x120_c16_rot90.png) |
+|    180 |  16 |![](/img/fbtest_160x120_c16_rot180.png)|![](/img/qmlscene_160x120_c16_rot180.png)|![](/img/gradient_160x120_c16_rot180.png)|
+|    270 |  16 |![](/img/fbtest_160x120_c16_rot270.png)|![](/img/qmlscene_160x120_c16_rot270.png)|![](/img/gradient_160x120_c16_rot270.png)|
 
 ## Testing single-touch
 

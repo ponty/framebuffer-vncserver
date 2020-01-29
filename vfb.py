@@ -64,10 +64,13 @@ def shot(conn, directory, png, rotation, *res):
 
 def tshot(conn, rotation, *res):
     (w, h, depth) = res
-    d = "tests/screenshots/"
+    d = "img/"
     os.makedirs(d, exist_ok=True)
-    fname = f"shot{w}x{h}_c{depth}_rot{rotation}.png"
+    fname = f"{w}x{h}_c{depth}_rot{rotation}.png"
     shot(conn, d, fname, rotation, *res)
+
+
+w, h = 160, 120
 
 
 @entrypoint
@@ -79,10 +82,10 @@ def main():
     ) as conn:
         build(conn)
         for rot in [90, 180, 270]:
-            tshot(conn, rot, 320, 240, 16)
+            tshot(conn, rot, w, h, 16)
         for rot in [0]:
-            tshot(conn, rot, 320, 240, 1)
-            tshot(conn, rot, 320, 240, 8)
-            tshot(conn, rot, 320, 240, 16)
-            tshot(conn, rot, 320, 240, 24)
-            tshot(conn, rot, 320, 240, 32)
+            tshot(conn, rot, w, h, 1)
+            tshot(conn, rot, w, h, 8)
+            tshot(conn, rot, w, h, 16)
+            tshot(conn, rot, w, h, 24)
+            tshot(conn, rot, w, h, 32)
