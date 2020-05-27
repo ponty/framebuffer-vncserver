@@ -114,7 +114,7 @@ Inside vagrant box:
 
 This generates patterns with different resolutions and color depths (on local computer):
 	
-	pip3 install fabric vncdotool python-vagrant entrypoint2
+	python3 -m pip install fabric vncdotool python-vagrant entrypoint2
 	python3 vfb.py
 
 |rotation|color|  fbtest                               |  qmlscene                               | gradient                                |
