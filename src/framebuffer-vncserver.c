@@ -542,8 +542,6 @@ static void update_screen(void)
 
         rfbMarkRectAsModified(server, varblock.min_i, varblock.min_j,
                               varblock.max_i + 2, varblock.max_j + 1);
-
-        rfbProcessEvents(server, 10000);
     }
 }
 
@@ -643,15 +641,10 @@ int main(int argc, char **argv)
     info_print("	rotate: %d\n", (int)vnc_rotate);
     init_fb_server(argc, argv, enable_touch);
 
-    /* Implement our own event loop to detect changes in the framebuffer. */
-    while (1)
-    {
-        while (server->clientHead == NULL)
-            rfbProcessEvents(server, 100000);
-
-        rfbProcessEvents(server, 100000);
-        update_screen();
-    }
+    /* Use standard non-blocking rfbRunEventLoop function instead
+    of implementing our own event loop */
+    rfbRunEventLoop(server, -1, TRUE);
+    while(1) update_screen();
 
     info_print("Cleaning up...\n");
     cleanup_fb();
