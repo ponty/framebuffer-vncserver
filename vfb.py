@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import Path
 from time import sleep
 
 import fabric
@@ -63,12 +64,13 @@ def shot(conn, directory, png, rotation, *res):
             client.captureScreen(directory + "gradient_" + png)
 
 
+IMGDIR = "img/"
+
+
 def tshot(conn, rotation, *res):
     (w, h, depth) = res
-    d = "img/"
-    os.makedirs(d, exist_ok=True)
     fname = f"{w}x{h}_c{depth}_rot{rotation}.png"
-    shot(conn, d, fname, rotation, *res)
+    shot(conn, IMGDIR, fname, rotation, *res)
 
 
 w, h = 160, 120
@@ -85,6 +87,10 @@ def main():
         },
     ) as conn:
         build(conn)
+        os.makedirs(IMGDIR, exist_ok=True)
+        for f in Path(IMGDIR).glob("*.png"):
+            f.unlink()
+
         for rot in [90, 180, 270]:
             tshot(conn, rot, w, h, 16)
         for rot in [0]:
