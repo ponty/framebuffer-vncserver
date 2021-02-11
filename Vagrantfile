@@ -87,6 +87,7 @@ Vagrant.configure(2) do |config|
   sudo apt-get install -y linux-source libssl-dev libelf-dev
   sudo apt-get install -y fbset fbcat fbterm fbi
   sudo apt-get install -y qmlscene
+  sudo apt-get install -y x11vnc
   sudo pip3 install entrypoint2
 
   # fb-test

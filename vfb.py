@@ -1,5 +1,6 @@
 import os
 import sys
+import threading
 from pathlib import Path
 from time import sleep
 
@@ -27,23 +28,48 @@ def set_resolution(conn, *res):
     conn.sudo("fbset -g %s %s %s %s %s" % (w, h, w, h, depth))
 
 
-def start_server(conn, rotation):
+def run_in_background(conn, cmd):
+    # https://docs.fabfile.org/en/1.3.8/faq.html#why-can-t-i-run-programs-in-the-background-with-it-makes-fabric-hang
+    # conn.sudo(f"nohup {cmd} >& /dev/null < /dev/null &", pty=False)
+
+    def thread_function(a):
+        conn.sudo(cmd, pty=False, warn=True)
+
+    x = threading.Thread(target=thread_function, args=(1,))
+    x.start()
+
+
+def start_server(conn, rotation, res):
     conn.sudo("killall framebuffer-vncserver", warn=True)
-    command = f"nohup /home/vagrant/buildc/framebuffer-vncserver -r {rotation}  &> /dev/null &"
+    # command = f"nohup /home/vagrant/buildc/framebuffer-vncserver -r {rotation}  &> /dev/null &"
+    command = f"/home/vagrant/buildc/framebuffer-vncserver -r {rotation}"
     print(f"command: {command}")
-    conn.sudo(command, pty=False)
+    # conn.sudo(command, pty=False)
+    run_in_background(conn, command)
+
+
+def start_server_x11vnc(conn, rotation, res):
+    (w, h, depth) = res
+    conn.sudo("killall framebuffer-vncserver", warn=True)
+    conn.sudo("killall x11vnc", warn=True)
+    # command = f"nohup /usr/bin/x11vnc  -shared -forever -rawfb map:/dev/fb0@{w}x{h}x{depth}  &"
+    command = f"/usr/bin/x11vnc  -shared -forever -rawfb map:/dev/fb0@{w}x{h}x{depth}"
+    print(f"command: {command}")
+    # conn.sudo(command, pty=False)
+    run_in_background(conn, command)
 
 
 def shot(conn, directory, png, rotation, *res):
     (w, h, depth) = res
 
     set_resolution(conn, *res)
-    start_server(conn, rotation)
-    sleep(0.2)
+    start_server(conn, rotation, res)
+    sleep(1.2)
 
     if depth != 8:
         conn.sudo("killall qmlscene", warn=True)
-        conn.sudo("qmlscene -platform linuxfb  &> /dev/null &", pty=False)
+        # conn.sudo("qmlscene -platform linuxfb  &> /dev/null &", pty=False)
+        run_in_background(conn, "qmlscene -platform linuxfb")
         sleep(0.2)
         with api.connect("localhost:0") as client:
             client.timeout = 5
