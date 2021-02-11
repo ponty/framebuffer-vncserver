@@ -11,8 +11,7 @@ chan = {
 
 @entrypoint
 def gradient(width=320, height=240, colorbit=32, fileout="/dev/fb0"):
-    """colorbit: 8/16/24/32 
-    """
+    """colorbit: 8/16/24/32"""
     assert colorbit in chan
     with open(fileout, "wb") as f:
         for y in range(0, height):

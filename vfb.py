@@ -1,15 +1,16 @@
-import vagrant
+import os
+import sys
+from time import sleep
+
 import fabric
+import vagrant
+from entrypoint2 import entrypoint
 
 # from fabric.api import env, execute, task, run, sudo, settings
 from vncdotool import api
-from entrypoint2 import entrypoint
-import os
-from time import sleep
 
 # pip3 install fabric vncdotool python-vagrant entrypoint2
 
-import sys
 
 print(sys.version)
 
@@ -78,7 +79,10 @@ def main():
     v = vagrant.Vagrant()
     v.up()
     with fabric.Connection(
-        v.user_hostname_port(), connect_kwargs={"key_filename": v.keyfile(),},
+        v.user_hostname_port(),
+        connect_kwargs={
+            "key_filename": v.keyfile(),
+        },
     ) as conn:
         build(conn)
         for rot in [90, 180, 270]:
