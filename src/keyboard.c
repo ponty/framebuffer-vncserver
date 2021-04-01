@@ -53,7 +53,14 @@ void injectKeyEvent(uint16_t code, uint16_t value)
     struct input_event ev;
     memset(&ev, 0, sizeof(ev));
 
+#if (__BITS_PER_LONG != 32 || !defined(__USE_TIME_BITS64)) && !defined(__KERNEL)
     gettimeofday(&ev.time, 0);
+#else
+    struct timeval time;
+    gettimeofday(&time, 0);
+    ev.input_event_sec = (long int)time.tv_sec;
+#endif
+
     ev.type = EV_KEY;
     ev.code = code;
     ev.value = value;
@@ -63,7 +70,13 @@ void injectKeyEvent(uint16_t code, uint16_t value)
     }
 
     // Finally send the SYN
+#if (__BITS_PER_LONG != 32 || !defined(__USE_TIME_BITS64)) && !defined(__KERNEL)
     gettimeofday(&ev.time, 0);
+#else
+    gettimeofday(&time, 0);
+    ev.input_event_sec = (long int)time.tv_sec;
+#endif
+
     ev.type = EV_SYN;
     ev.code = 0;
     ev.value = 0;
