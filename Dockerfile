@@ -1,4 +1,5 @@
 FROM alpine as builder
+LABEL maintainer="ek5.chimenti@gmail.com"
 
 ADD . /target/
 WORKDIR /target
