@@ -160,4 +160,6 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
   "
       config.vm.provision "shell", inline: $script
 
+      config.ssh.extra_args = ["-t", "cd /vagrant; bash --login"]       
+
 end
