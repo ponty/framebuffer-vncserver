@@ -81,7 +81,7 @@ Vagrant.configure(2) do |config|
   sudo apt-get install -y xvfb
   sudo apt-get install -y python3-pip
   sudo apt-get install -y libvncserver-dev
-  sudo apt-get install -y build-essential
+  sudo apt-get install -y build-essential flex bison
   sudo apt-get install -y cmake
   sudo apt-get install -y qt5-qmake qt5-default
   sudo apt-get install -y linux-source libssl-dev libelf-dev
