@@ -151,6 +151,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
         // Then send a BTN_TOUCH
         gettimeofday(&time, 0);
         ev.input_event_sec = time.tv_sec;
+        ev.input_event_usec = time.tv_usec;
         ev.type = EV_KEY;
         ev.code = BTN_TOUCH;
         ev.value = touchValue;
@@ -165,6 +166,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
         // Then send a ABS_MT_POSITION_X
         gettimeofday(&time, 0);
         ev.input_event_sec = time.tv_sec;
+        ev.input_event_usec = time.tv_usec;
         ev.type = EV_ABS;
         ev.code = ABS_MT_POSITION_X;
         ev.value = x;
@@ -176,6 +178,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
         // Then send a ABS_MT_POSITION_Y
         gettimeofday(&time, 0);
         ev.input_event_sec = time.tv_sec;
+        ev.input_event_usec = time.tv_usec;
         ev.type = EV_ABS;
         ev.code = ABS_MT_POSITION_Y;
         ev.value = y;
@@ -187,6 +190,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
         // Then send the X
         gettimeofday(&time, 0);
         ev.input_event_sec = time.tv_sec;
+        ev.input_event_usec = time.tv_usec;
         ev.type = EV_ABS;
         ev.code = ABS_X;
         ev.value = x;
@@ -198,6 +202,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
         // Then send the Y
         gettimeofday(&time, 0);
         ev.input_event_sec = time.tv_sec;
+        ev.input_event_usec = time.tv_usec;
         ev.type = EV_ABS;
         ev.code = ABS_Y;
         ev.value = y;
@@ -210,6 +215,7 @@ void injectTouchEvent(enum MouseAction mouseAction, int x, int y, struct fb_var_
     // Finally send the SYN
     gettimeofday(&time, 0);
     ev.input_event_sec = time.tv_sec;
+    ev.input_event_usec = time.tv_usec;
     ev.type = EV_SYN;
     ev.code = 0;
     ev.value = 0;

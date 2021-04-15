@@ -74,6 +74,7 @@ void injectKeyEvent(uint16_t code, uint16_t value)
     // Finally send the SYN
     gettimeofday(&time, 0);
     ev.input_event_sec = time.tv_sec;
+    ev.input_event_usec = time.tv_usec;
 
     ev.type = EV_SYN;
     ev.code = 0;
