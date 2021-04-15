@@ -23,6 +23,11 @@
 #include "keyboard.h"
 #include "logging.h"
 
+#ifndef input_event_sec
+#define input_event_sec time.tv_sec
+#define input_event_usec time.tv_usec
+#endif
+
 //static char KBD_DEVICE[256] = "/dev/input/event1";
 static int kbdfd = -1;
 
@@ -53,7 +58,11 @@ void injectKeyEvent(uint16_t code, uint16_t value)
     struct input_event ev;
     memset(&ev, 0, sizeof(ev));
 
-    gettimeofday(&ev.time, 0);
+    struct timeval time;
+    gettimeofday(&time, 0);
+    ev.input_event_sec = time.tv_sec;
+    ev.input_event_usec = time.tv_usec;
+
     ev.type = EV_KEY;
     ev.code = code;
     ev.value = value;
@@ -63,7 +72,9 @@ void injectKeyEvent(uint16_t code, uint16_t value)
     }
 
     // Finally send the SYN
-    gettimeofday(&ev.time, 0);
+    gettimeofday(&time, 0);
+    ev.input_event_sec = time.tv_sec;
+
     ev.type = EV_SYN;
     ev.code = 0;
     ev.value = 0;
