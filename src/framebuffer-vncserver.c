@@ -51,7 +51,8 @@ static char fb_device[256] = "/dev/fb0";
 static char touch_device[256] = "";
 static char kbd_device[256] = "";
 
-static struct fb_var_screeninfo scrinfo;
+static struct fb_var_screeninfo var_scrinfo;
+static struct fb_fix_screeninfo fix_scrinfo;
 static int fbfd = -1;
 static unsigned short int *fbmmap = MAP_FAILED;
 static unsigned short int *vncbuf;
@@ -63,6 +64,8 @@ static rfbScreenInfoPtr server;
 static size_t bytespp;
 static unsigned int bits_per_pixel;
 static unsigned int frame_size;
+static unsigned int fb_xres;
+static unsigned int fb_yres;
 int verbose = 0;
 
 #define UNUSED(x) (void)(x)
@@ -94,26 +97,40 @@ static void init_fb(void)
         exit(EXIT_FAILURE);
     }
 
-    if (ioctl(fbfd, FBIOGET_VSCREENINFO, &scrinfo) != 0)
+    if (ioctl(fbfd, FBIOGET_VSCREENINFO, &var_scrinfo) != 0)
     {
         error_print("ioctl error\n");
         exit(EXIT_FAILURE);
     }
 
-    pixels = scrinfo.xres * scrinfo.yres;
-    bytespp = scrinfo.bits_per_pixel / 8;
-    bits_per_pixel = scrinfo.bits_per_pixel;
+    if (ioctl(fbfd, FBIOGET_FSCREENINFO, &fix_scrinfo) != 0)
+    {
+        error_print("ioctl error\n");
+        exit(EXIT_FAILURE);
+    }
+
+    /*
+     * Get actual resolution of the framebufffer, which is not always the same as the screen resolution.
+     * This prevents the screen from 'smearing' on 1366 x 768 displays
+     */
+
+    fb_xres = fix_scrinfo.line_length / (var_scrinfo.bits_per_pixel / 8);
+    fb_yres = var_scrinfo.yres;
+
+    pixels = fb_xres * fb_yres;
+    bytespp = var_scrinfo.bits_per_pixel / 8;
+    bits_per_pixel = var_scrinfo.bits_per_pixel;
     frame_size = pixels * bits_per_pixel / 8;
 
     info_print("  xres=%d, yres=%d, xresv=%d, yresv=%d, xoffs=%d, yoffs=%d, bpp=%d\n",
-               (int)scrinfo.xres, (int)scrinfo.yres,
-               (int)scrinfo.xres_virtual, (int)scrinfo.yres_virtual,
-               (int)scrinfo.xoffset, (int)scrinfo.yoffset,
-               (int)scrinfo.bits_per_pixel);
+               (int)fb_xres, (int)fb_yres,
+               (int)var_scrinfo.xres_virtual, (int)var_scrinfo.yres_virtual,
+               (int)var_scrinfo.xoffset, (int)var_scrinfo.yoffset,
+               (int)var_scrinfo.bits_per_pixel);
     info_print("  offset:length red=%d:%d green=%d:%d blue=%d:%d \n",
-               (int)scrinfo.red.offset, (int)scrinfo.red.length,
-               (int)scrinfo.green.offset, (int)scrinfo.green.length,
-               (int)scrinfo.blue.offset, (int)scrinfo.blue.length);
+               (int)var_scrinfo.red.offset, (int)var_scrinfo.red.length,
+               (int)var_scrinfo.green.offset, (int)var_scrinfo.green.length,
+               (int)var_scrinfo.blue.offset, (int)var_scrinfo.blue.length);
 
     fbmmap = mmap(NULL, frame_size, PROT_READ, MAP_SHARED, fbfd, 0);
 
@@ -163,12 +180,12 @@ a press and release of button 5.
     {
         if (pressed == 1)
         {
-            injectTouchEvent(MouseDrag, x, y, &scrinfo);
+            injectTouchEvent(MouseDrag, x, y, &var_scrinfo);
         }
         else
         {
             pressed = 1;
-            injectTouchEvent(MousePress, x, y, &scrinfo);
+            injectTouchEvent(MousePress, x, y, &var_scrinfo);
         }
     }
     if (buttonMask == 0)
@@ -176,7 +193,7 @@ a press and release of button 5.
         if (pressed == 1)
         {
             pressed = 0;
-            injectTouchEvent(MouseRelease, x, y, &scrinfo);
+            injectTouchEvent(MouseRelease, x, y, &var_scrinfo);
         }
     }
 }
@@ -200,8 +217,8 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch)
     fbbuf = calloc(frame_size, 1);
     assert(fbbuf != NULL);
 
-    /* TODO: This assumes scrinfo.bits_per_pixel is 16. */
-    server = rfbGetScreen(&argc, argv, scrinfo.xres, scrinfo.yres, BITS_PER_SAMPLE, SAMPLES_PER_PIXEL, rbytespp);
+    /* TODO: This assumes var_scrinfo.bits_per_pixel is 16. */
+    server = rfbGetScreen(&argc, argv, fb_xres, fb_yres, BITS_PER_SAMPLE, SAMPLES_PER_PIXEL, rbytespp);
     assert(server != NULL);
 
     server->desktopName = "framebuffer";
@@ -219,14 +236,14 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch)
     rfbInitServer(server);
 
     /* Mark as dirty since we haven't sent any updates at all yet. */
-    rfbMarkRectAsModified(server, 0, 0, scrinfo.xres, scrinfo.yres);
+    rfbMarkRectAsModified(server, 0, 0, fb_xres, fb_yres);
 
     /* No idea. */
-    varblock.r_offset = scrinfo.red.offset + scrinfo.red.length - BITS_PER_SAMPLE;
-    varblock.g_offset = scrinfo.green.offset + scrinfo.green.length - BITS_PER_SAMPLE;
-    varblock.b_offset = scrinfo.blue.offset + scrinfo.blue.length - BITS_PER_SAMPLE;
-    varblock.rfb_xres = scrinfo.yres;
-    varblock.rfb_maxy = scrinfo.xres - 1;
+    varblock.r_offset = var_scrinfo.red.offset + var_scrinfo.red.length - BITS_PER_SAMPLE;
+    varblock.g_offset = var_scrinfo.green.offset + var_scrinfo.green.length - BITS_PER_SAMPLE;
+    varblock.b_offset = var_scrinfo.blue.offset + var_scrinfo.blue.length - BITS_PER_SAMPLE;
+    varblock.rfb_xres = fb_yres;
+    varblock.rfb_maxy = fb_xres - 1;
 }
 
 // sec
@@ -279,10 +296,10 @@ static void update_screen(void)
         if (memcmp(fbmmap, fbbuf, frame_size) != 0)
         {
             int y;
-            for (y = 0; y < (int)scrinfo.yres; y++)
+            for (y = 0; y < (int)fb_yres; y++)
             {
                 int x;
-                for (x = 0; x < (int)scrinfo.xres; x++)
+                for (x = 0; x < (int)fb_xres; x++)
                 {
                     uint32_t pixel = *(uint32_t *)f & 0x00FFFFFF;
                     uint32_t comp = *(uint32_t *)c & 0x00FFFFFF;
@@ -326,10 +343,10 @@ static void update_screen(void)
         if (memcmp(fbmmap, fbbuf, frame_size) != 0)
         {
             int y;
-            for (y = 0; y < (int)scrinfo.yres; y++)
+            for (y = 0; y < (int)fb_yres; y++)
             {
                 int x;
-                for (x = 0; x < (int)scrinfo.xres; x += xstep)
+                for (x = 0; x < (int)fb_xres; x += xstep)
                 {
                     uint8_t pixels = *f;
 
@@ -375,11 +392,11 @@ static void update_screen(void)
             int xstep = 4 / bytespp;
 
             int y;
-            for (y = 0; y < (int)scrinfo.yres; y++)
+            for (y = 0; y < (int)fb_yres; y++)
             {
                 /* Compare every 1/2/4 pixels at a time */
                 int x;
-                for (x = 0; x < (int)scrinfo.xres; x += xstep)
+                for (x = 0; x < (int)fb_xres; x += xstep)
                 {
                     uint32_t pixel = *f;
 
@@ -445,27 +462,27 @@ static void update_screen(void)
         {
         case 0:
         case 180:
-            server->width = scrinfo.xres;
-            server->height = scrinfo.yres;
-            server->paddedWidthInBytes = scrinfo.xres * bytespp;
+            server->width = fb_xres;
+            server->height = fb_yres;
+            server->paddedWidthInBytes = fb_xres * bytespp;
             break;
 
         case 90:
         case 270:
-            server->width = scrinfo.yres;
-            server->height = scrinfo.xres;
-            server->paddedWidthInBytes = scrinfo.yres * bytespp;
+            server->width = fb_yres;
+            server->height = fb_xres;
+            server->paddedWidthInBytes = fb_yres * bytespp;
             break;
         }
 
         if (memcmp(fbmmap, fbbuf, frame_size) != 0)
         {
             int y;
-            for (y = 0; y < (int)scrinfo.yres; y++)
+            for (y = 0; y < (int)fb_yres; y++)
             {
                 /* Compare every pixels at a time */
                 int x;
-                for (x = 0; x < (int)scrinfo.xres; x++)
+                for (x = 0; x < (int)fb_xres; x++)
                 {
                     uint16_t pixel = *f;
 
@@ -482,18 +499,18 @@ static void update_screen(void)
                             break;
 
                         case 90:
-                            x2 = scrinfo.yres - 1 - y;
+                            x2 = fb_yres - 1 - y;
                             y2 = x;
                             break;
 
                         case 180:
-                            x2 = scrinfo.xres - 1 - x;
-                            y2 = scrinfo.yres - 1 - y;
+                            x2 = fb_xres - 1 - x;
+                            y2 = fb_yres - 1 - y;
                             break;
 
                         case 270:
                             x2 = y;
-                            y2 = scrinfo.xres - 1 - x;
+                            y2 = fb_xres - 1 - x;
                             break;
                         default:
                             error_print("rotation is invalid\n");
@@ -636,9 +653,9 @@ int main(int argc, char **argv)
     }
 
     info_print("Initializing VNC server:\n");
-    info_print("	width:  %d\n", (int)scrinfo.xres);
-    info_print("	height: %d\n", (int)scrinfo.yres);
-    info_print("	bpp:    %d\n", (int)scrinfo.bits_per_pixel);
+    info_print("	width:  %d\n", (int)fb_xres);
+    info_print("	height: %d\n", (int)fb_yres);
+    info_print("	bpp:    %d\n", (int)var_scrinfo.bits_per_pixel);
     info_print("	port:   %d\n", (int)vnc_port);
     info_print("	rotate: %d\n", (int)vnc_rotate);
     init_fb_server(argc, argv, enable_touch);
