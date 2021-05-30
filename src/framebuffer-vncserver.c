@@ -47,6 +47,8 @@
 #define BITS_PER_SAMPLE 5
 #define SAMPLES_PER_PIXEL 2
 
+#define CHANNELS_PER_PIXEL 4
+
 static char fb_device[256] = "/dev/fb0";
 static char touch_device[256] = "";
 static char kbd_device[256] = "";
@@ -114,7 +116,7 @@ static void init_fb(void)
      * This prevents the screen from 'smearing' on 1366 x 768 displays
      */
 
-    fb_xres = fix_scrinfo.line_length / (var_scrinfo.bits_per_pixel / 8);
+    fb_xres = fix_scrinfo.line_length / CHANNELS_PER_PIXEL;
     fb_yres = var_scrinfo.yres;
 
     pixels = fb_xres * fb_yres;
