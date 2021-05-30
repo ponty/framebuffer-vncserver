@@ -116,7 +116,7 @@ static void init_fb(void)
      * This prevents the screen from 'smearing' on 1366 x 768 displays
      */
 
-    fb_xres = fix_scrinfo.line_length / CHANNELS_PER_PIXEL;
+    fb_xres = fix_scrinfo.line_length / (var_scrinfo.bits_per_pixel / 8.0);
     fb_yres = var_scrinfo.yres;
 
     pixels = fb_xres * fb_yres;
