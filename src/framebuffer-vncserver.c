@@ -47,7 +47,7 @@
 #define BITS_PER_SAMPLE 5
 #define SAMPLES_PER_PIXEL 2
 
-#define CHANNELS_PER_PIXEL 4
+// #define CHANNELS_PER_PIXEL 4
 
 static char fb_device[256] = "/dev/fb0";
 static char touch_device[256] = "";
