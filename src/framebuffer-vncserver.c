@@ -62,6 +62,7 @@ static unsigned short int *fbbuf;
 
 static int vnc_port = 5900;
 static int vnc_rotate = 0;
+static int touch_rotate = -1;
 static rfbScreenInfoPtr server;
 static size_t bytespp;
 static unsigned int bits_per_pixel;
@@ -570,12 +571,13 @@ static void update_screen(void)
 
 void print_usage(char **argv)
 {
-    info_print("%s [-f device] [-p port] [-t touchscreen] [-k keyboard] [-r rotation] [-v] [-h]\n"
+    info_print("%s [-f device] [-p port] [-t touchscreen] [-k keyboard] [-r rotation] [-R touchscreen rotation] [-v] [-h]\n"
                "-p port: VNC port, default is 5900\n"
                "-f device: framebuffer device node, default is /dev/fb0\n"
                "-k device: keyboard device node (example: /dev/input/event0)\n"
                "-t device: touchscreen device node (example:/dev/input/event2)\n"
                "-r degrees: framebuffer rotation, default is 0\n"
+               "-R degrees: touchscreen rotation, default is same as framebuffer rotation\n"
                "-v: verbose\n"
                "-h: print this help\n",
                *argv);
@@ -620,6 +622,11 @@ int main(int argc, char **argv)
                     if (argv[i])
                         vnc_rotate = atoi(argv[i]);
                     break;
+                case 'R':
+                    i++;
+                    if (argv[i])
+                        touch_rotate = atoi(argv[i]);
+                    break;
                 case 'v':
                     verbose = 1;
                     break;
@@ -628,6 +635,9 @@ int main(int argc, char **argv)
             i++;
         }
     }
+
+    if (touch_rotate < 0)
+        touch_rotate = vnc_rotate;
 
     info_print("Initializing framebuffer device %s...\n", fb_device);
     init_fb();
@@ -646,7 +656,7 @@ int main(int argc, char **argv)
     if (strlen(touch_device) > 0)
     {
         // init touch only if there is a touch device defined
-        int ret = init_touch(touch_device, vnc_rotate);
+        int ret = init_touch(touch_device, touch_rotate);
         enable_touch = (ret > 0);
     }
     else
@@ -660,6 +670,7 @@ int main(int argc, char **argv)
     info_print("	bpp:    %d\n", (int)var_scrinfo.bits_per_pixel);
     info_print("	port:   %d\n", (int)vnc_port);
     info_print("	rotate: %d\n", (int)vnc_rotate);
+    info_print("  touch rotate: %d\n", (int)touch_rotate);
     init_fb_server(argc, argv, enable_touch);
 
     /* Implement our own event loop to detect changes in the framebuffer. */
