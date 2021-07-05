@@ -63,6 +63,7 @@ static unsigned short int *fbbuf;
 static int vnc_port = 5900;
 static int vnc_rotate = 0;
 static int touch_rotate = -1;
+static int target_fps = 10;
 static rfbScreenInfoPtr server;
 static size_t bytespp;
 static unsigned int bits_per_pixel;
@@ -562,8 +563,6 @@ static void update_screen(void)
 
         rfbMarkRectAsModified(server, varblock.min_i, varblock.min_j,
                               varblock.max_i + 2, varblock.max_j + 1);
-
-        rfbProcessEvents(server, 10000);
     }
 }
 
@@ -571,13 +570,14 @@ static void update_screen(void)
 
 void print_usage(char **argv)
 {
-    info_print("%s [-f device] [-p port] [-t touchscreen] [-k keyboard] [-r rotation] [-R touchscreen rotation] [-v] [-h]\n"
+    info_print("%s [-f device] [-p port] [-t touchscreen] [-k keyboard] [-r rotation] [-R touchscreen rotation] [-F FPS] [-v] [-h]\n"
                "-p port: VNC port, default is 5900\n"
                "-f device: framebuffer device node, default is /dev/fb0\n"
                "-k device: keyboard device node (example: /dev/input/event0)\n"
                "-t device: touchscreen device node (example:/dev/input/event2)\n"
                "-r degrees: framebuffer rotation, default is 0\n"
                "-R degrees: touchscreen rotation, default is same as framebuffer rotation\n"
+               "-F FPS: Maximum target FPS, default is 10\n"
                "-v: verbose\n"
                "-h: print this help\n",
                *argv);
@@ -626,6 +626,10 @@ int main(int argc, char **argv)
                     i++;
                     if (argv[i])
                         touch_rotate = atoi(argv[i]);
+                case 'F':
+                    i++;
+                    if (argv[i])
+                        target_fps = atoi(argv[i]);
                     break;
                 case 'v':
                     verbose = 1;
@@ -671,16 +675,23 @@ int main(int argc, char **argv)
     info_print("	port:   %d\n", (int)vnc_port);
     info_print("	rotate: %d\n", (int)vnc_rotate);
     info_print("  touch rotate: %d\n", (int)touch_rotate);
+    info_print("    target FPS: %d\n", (int)target_fps);
     init_fb_server(argc, argv, enable_touch);
 
     /* Implement our own event loop to detect changes in the framebuffer. */
     while (1)
     {
-        while (server->clientHead == NULL)
-            rfbProcessEvents(server, 100000);
+        rfbRunEventLoop(server, 100 * 1000, TRUE);
+        while (rfbIsActive(server))
+        {
+            if (server->clientHead != NULL)
+                update_screen();
 
-        rfbProcessEvents(server, 100000);
-        update_screen();
+            if (target_fps > 0)
+                usleep(1000 * 1000 / target_fps);
+            else if (server->clientHead == NULL)
+                usleep(100 * 1000);
+        }
     }
 
     info_print("Cleaning up...\n");
