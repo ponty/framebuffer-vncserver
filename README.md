@@ -51,14 +51,14 @@ Using qmake:
 
 ### command-line help 
 
-	$ ./framebuffer-vncserver -h
-	./framebuffer-vncserver [-f device] [-p port] [-t touchscreen] [-k keyboard] [-r rotation] [-R touchscreen rotation] [-v] [-h]
+	./framebuffer-vncserver [-f device] [-p port] [-t touchscreen] [-k keyboard] [-r rotation] [-R touchscreen rotation] [-F FPS] [-v] [-h]
 	-p port: VNC port, default is 5900
 	-f device: framebuffer device node, default is /dev/fb0
 	-k device: keyboard device node (example: /dev/input/event0)
 	-t device: touchscreen device node (example:/dev/input/event2)
 	-r degrees: framebuffer rotation, default is 0
 	-R degrees: touchscreen rotation, default is same as framebuffer rotation
+	-F FPS: Maximum target FPS, default is 10
 	-v: verbose
 	-h: print this help
 
@@ -118,16 +118,16 @@ This generates patterns with different resolutions and color depths (on local co
 	python3 -m pip install fabric vncdotool python-vagrant entrypoint2
 	python3 vfb.py
 
-|rotation|color|  fbtest                               |  qmlscene                               | gradient                                |
-|-------:|----:|---------------------------------------|-----------------------------------------|-----------------------------------------|
-|      0 |   1 |                                       |![](/img/qmlscene_160x120_c1_rot0.png)   |                                         |
-|      0 |   8 |![](/img/fbtest_160x120_c8_rot0.png)   |                                         |![](/img/gradient_160x120_c8_rot0.png)   |
-|      0 |  16 |![](/img/fbtest_160x120_c16_rot0.png)  |![](/img/qmlscene_160x120_c16_rot0.png)  |![](/img/gradient_160x120_c16_rot0.png)  |
-|      0 |  24 |![](/img/fbtest_160x120_c24_rot0.png)  |![](/img/qmlscene_160x120_c24_rot0.png)  |![](/img/gradient_160x120_c24_rot0.png)  |
-|      0 |  32 |![](/img/fbtest_160x120_c32_rot0.png)  |![](/img/qmlscene_160x120_c32_rot0.png)  |![](/img/gradient_160x120_c32_rot0.png)  |
-|     90 |  16 |![](/img/fbtest_160x120_c16_rot90.png) |![](/img/qmlscene_160x120_c16_rot90.png) |![](/img/gradient_160x120_c16_rot90.png) |
-|    180 |  16 |![](/img/fbtest_160x120_c16_rot180.png)|![](/img/qmlscene_160x120_c16_rot180.png)|![](/img/gradient_160x120_c16_rot180.png)|
-|    270 |  16 |![](/img/fbtest_160x120_c16_rot270.png)|![](/img/qmlscene_160x120_c16_rot270.png)|![](/img/gradient_160x120_c16_rot270.png)|
+| rotation | color | fbtest                                  | qmlscene                                  | gradient                                  |
+| -------: | ----: | --------------------------------------- | ----------------------------------------- | ----------------------------------------- |
+|        0 |     1 |                                         | ![](/img/qmlscene_160x120_c1_rot0.png)    |                                           |
+|        0 |     8 | ![](/img/fbtest_160x120_c8_rot0.png)    |                                           | ![](/img/gradient_160x120_c8_rot0.png)    |
+|        0 |    16 | ![](/img/fbtest_160x120_c16_rot0.png)   | ![](/img/qmlscene_160x120_c16_rot0.png)   | ![](/img/gradient_160x120_c16_rot0.png)   |
+|        0 |    24 | ![](/img/fbtest_160x120_c24_rot0.png)   | ![](/img/qmlscene_160x120_c24_rot0.png)   | ![](/img/gradient_160x120_c24_rot0.png)   |
+|        0 |    32 | ![](/img/fbtest_160x120_c32_rot0.png)   | ![](/img/qmlscene_160x120_c32_rot0.png)   | ![](/img/gradient_160x120_c32_rot0.png)   |
+|       90 |    16 | ![](/img/fbtest_160x120_c16_rot90.png)  | ![](/img/qmlscene_160x120_c16_rot90.png)  | ![](/img/gradient_160x120_c16_rot90.png)  |
+|      180 |    16 | ![](/img/fbtest_160x120_c16_rot180.png) | ![](/img/qmlscene_160x120_c16_rot180.png) | ![](/img/gradient_160x120_c16_rot180.png) |
+|      270 |    16 | ![](/img/fbtest_160x120_c16_rot270.png) | ![](/img/qmlscene_160x120_c16_rot270.png) | ![](/img/gradient_160x120_c16_rot270.png) |
 
 ## Testing single-touch
 
