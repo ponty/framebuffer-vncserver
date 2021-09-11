@@ -99,24 +99,6 @@ int keysym2scancode(rfbKeySym key, rfbClientPtr cl)
             scancode += 10;
         scancode += KEY_1;
     }
-    else if (code >= 0xFF50 && code <= 0xFF58)
-    {
-        static const uint16_t map[] =
-            {KEY_HOME, KEY_LEFT, KEY_UP, KEY_RIGHT, KEY_DOWN,
-             KEY_END, 0};
-        scancode = map[code & 0xF];
-    }
-    else if (code >= 0xFFE1 && code <= 0xFFEE)
-    {
-        static const uint16_t map[] =
-            {KEY_LEFTSHIFT, KEY_LEFTSHIFT,
-             KEY_COMPOSE, KEY_COMPOSE,
-             KEY_LEFTSHIFT, KEY_LEFTSHIFT,
-             0, 0,
-             KEY_LEFTALT, KEY_RIGHTALT,
-             0, 0, 0, 0};
-        scancode = map[code & 0xF];
-    }
     else if ((code >= 'A' && code <= 'Z') || (code >= 'a' && code <= 'z'))
     {
         static const uint16_t map[] = {
@@ -187,6 +169,23 @@ int keysym2scancode(rfbKeySym key, rfbClientPtr cl)
         case XK_F11:
             rfbShutdownServer(cl->screen, TRUE);
             break;      //ffc8
+
+        case XK_Home:           scancode = KEY_HOME;    break;  //ff50
+        case XK_Left:           scancode = KEY_LEFT;    break;  //ff51
+        case XK_Up:             scancode = KEY_UP;      break;  //ff52
+        case XK_Right:          scancode = KEY_RIGHT;   break;  //ff53
+        case XK_Down:           scancode = KEY_DOWN;    break;  //ff54
+        case XK_Page_Up:        scancode = KEY_PAGEUP;  break;  //ff55
+        case XK_Page_Down:      scancode = KEY_PAGEDOWN; break; //ff56
+        case XK_End:            scancode = KEY_END;     break;  //ff57
+        case XK_Begin:          scancode = KEY_HOME;    break;  //ff58
+
+        case XK_Shift_L:        scancode = KEY_LEFTSHIFT; break; //ffe1
+        case XK_Shift_R:        scancode = KEY_RIGHTSHIFT; break; //ffe2
+        case XK_Control_L:      scancode = KEY_LEFTCTRL; break; //ffe3
+        case XK_Control_R:      scancode = KEY_RIGHTCTRL; break; //ffe4
+        case XK_Alt_L:          scancode = KEY_LEFTALT; break;  //ffe9
+        case XK_Alt_R:          scancode = KEY_RIGHTALT; break; //ffea
         }
     }
 
