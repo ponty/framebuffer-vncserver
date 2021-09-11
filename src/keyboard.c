@@ -119,11 +119,11 @@ int keysym2scancode(rfbKeySym key, rfbClientPtr cl)
         case XK_numbersign:     scancode = KEY_3;       break;  //23
         case XK_dollar:         scancode = KEY_4;       break;  //24
         case XK_percent:        scancode = KEY_5;       break;  //25
-        case XK_ampersand:      scancode = KEY_6;       break;  //26
-        case XK_apostrophe:     scancode = KEY_7;       break;  //27
-        case XK_parenleft:      scancode = KEY_8;       break;  //28
-        case XK_parenright:     scancode = KEY_9;       break;  //29
-        case XK_asterisk:       scancode = KEY_0;       break;  //2a
+        case XK_ampersand:      scancode = KEY_7;       break;  //26
+        case XK_apostrophe:     scancode = KEY_APOSTROPHE; break; //27
+        case XK_parenleft:      scancode = KEY_9;       break;  //28
+        case XK_parenright:     scancode = KEY_0;       break;  //29
+        case XK_asterisk:       scancode = KEY_8;       break;  //2a
         case XK_plus:           scancode = KEY_MINUS;   break;  //2b
         case XK_comma:          scancode = KEY_EQUAL;   break;  //2c
         case XK_minus:          scancode = KEY_MINUS;   break;  //2d
