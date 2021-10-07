@@ -99,24 +99,6 @@ int keysym2scancode(rfbKeySym key, rfbClientPtr cl)
             scancode += 10;
         scancode += KEY_1;
     }
-    else if (code >= 0xFF50 && code <= 0xFF58)
-    {
-        static const uint16_t map[] =
-            {KEY_HOME, KEY_LEFT, KEY_UP, KEY_RIGHT, KEY_DOWN,
-             KEY_END, 0};
-        scancode = map[code & 0xF];
-    }
-    else if (code >= 0xFFE1 && code <= 0xFFEE)
-    {
-        static const uint16_t map[] =
-            {KEY_LEFTSHIFT, KEY_LEFTSHIFT,
-             KEY_COMPOSE, KEY_COMPOSE,
-             KEY_LEFTSHIFT, KEY_LEFTSHIFT,
-             0, 0,
-             KEY_LEFTALT, KEY_RIGHTALT,
-             0, 0, 0, 0};
-        scancode = map[code & 0xF];
-    }
     else if ((code >= 'A' && code <= 'Z') || (code >= 'a' && code <= 'z'))
     {
         static const uint16_t map[] = {
@@ -131,60 +113,79 @@ int keysym2scancode(rfbKeySym key, rfbClientPtr cl)
     {
         switch (code)
         {
-        case 0x0020:
-            scancode = KEY_SPACE;
-            break;
-        case 0x002C:
-            scancode = KEY_COMMA;
-            break;
-        case 0x003C:
-            scancode = KEY_COMMA;
-            break;
-        case 0x002E:
-            scancode = KEY_DOT;
-            break;
-        case 0x003E:
-            scancode = KEY_DOT;
-            break;
-        case 0x002F:
-            scancode = KEY_SLASH;
-            break;
-        case 0x003F:
-            scancode = KEY_SLASH;
-            break;
-        case 0x0032:
-            scancode = KEY_EMAIL;
-            break;
-        case 0x0040:
-            scancode = KEY_EMAIL;
-            break;
-        case 0xFF08:
-            scancode = KEY_BACKSPACE;
-            break;
-        case 0xFF1B:
-            scancode = KEY_BACK;
-            break;
-        case 0xFF09:
-            scancode = KEY_TAB;
-            break;
-        case 0xFF0D:
-            scancode = KEY_ENTER;
-            break;
-        case 0xFFBE:
-            scancode = KEY_F1;
-            break; // F1
-        case 0xFFBF:
-            scancode = KEY_F2;
-            break; // F2
-        case 0xFFC0:
-            scancode = KEY_F3;
-            break; // F3
-        case 0xFFC5:
-            scancode = KEY_F4;
-            break; // F8
-        case 0xFFC8:
+        case XK_space:          scancode = KEY_SPACE;   break;  //20
+        case XK_exclam:         scancode = KEY_1;       break;  //21
+        case XK_quotedbl:       scancode = KEY_APOSTROPHE; break; //22
+        case XK_numbersign:     scancode = KEY_3;       break;  //23
+        case XK_dollar:         scancode = KEY_4;       break;  //24
+        case XK_percent:        scancode = KEY_5;       break;  //25
+        case XK_ampersand:      scancode = KEY_7;       break;  //26
+        case XK_apostrophe:     scancode = KEY_APOSTROPHE; break; //27
+        case XK_parenleft:      scancode = KEY_9;       break;  //28
+        case XK_parenright:     scancode = KEY_0;       break;  //29
+        case XK_asterisk:       scancode = KEY_8;       break;  //2a
+        case XK_plus:           scancode = KEY_MINUS;   break;  //2b
+        case XK_comma:          scancode = KEY_EQUAL;   break;  //2c
+        case XK_minus:          scancode = KEY_MINUS;   break;  //2d
+        case XK_period:         scancode = KEY_DOT;     break;  //2e
+        case XK_slash:          scancode = KEY_SLASH;   break;  //2f
+        // XK_0 .. XK_9         // 30 .. 39
+        case XK_colon:          scancode = KEY_SEMICOLON; break; //3a
+        case XK_semicolon:      scancode = KEY_SEMICOLON; break; //3b
+        case XK_less:           scancode = KEY_COMMA;   break;  //3c
+        case XK_equal:          scancode = KEY_EQUAL;   break;  //3d
+        case XK_greater:        scancode = KEY_DOT;     break;  //3e
+        case XK_question:       scancode = KEY_SLASH;   break;  //3f
+        case XK_at:             scancode = KEY_2;       break;  //40
+        // XK_A .. XK_Z         // 41 .. 5a
+        case XK_bracketleft:    scancode = KEY_LEFTBRACE; break; //5b
+        case XK_backslash:      scancode = KEY_BACKSLASH; break; //5c
+        case XK_bracketright:   scancode = KEY_RIGHTBRACE; break; //5d
+        case XK_asciicircum:    scancode = KEY_6;       break;  //5e
+        case XK_underscore:     scancode = KEY_MINUS;   break;  //5f
+        case XK_grave:          scancode = KEY_GRAVE;   break;  //60
+        // XK_a .. XK_z         // 61 .. 7a
+        case XK_braceleft:      scancode = KEY_LEFTBRACE; break; //7b
+        case XK_bar:            scancode = KEY_BACKSLASH; break; //7c
+        case XK_braceright:     scancode = KEY_RIGHTBRACE; break; //7d
+        case XK_asciitilde:     scancode = KEY_GRAVE;   break;  //7e
+
+        case XK_BackSpace:      scancode = KEY_BACKSPACE;       break;  //ff08
+        case XK_Escape:         scancode = KEY_ESC;     break;  //ff1b
+        case XK_Tab:            scancode = KEY_TAB;     break;  //ff09
+        case XK_Return:         scancode = KEY_ENTER;   break;  //ff0d
+        case XK_F1:             scancode = KEY_F1;      break;  //ffbe
+        case XK_F2:             scancode = KEY_F2;      break;  //ffbf
+        case XK_F3:             scancode = KEY_F3;      break;  //ffc0
+        case XK_F4:             scancode = KEY_F4;      break;  //ffc1
+        case XK_F5:             scancode = KEY_F5;      break;  //ffc2
+        case XK_F6:             scancode = KEY_F6;      break;  //ffc3
+        case XK_F7:             scancode = KEY_F7;      break;  //ffc4
+        case XK_F8:             scancode = KEY_F8;      break;  //ffc5
+        case XK_F9:             scancode = KEY_F9;      break;  //ffc6
+        case XK_F10:            scancode = KEY_F10;     break;  //ffc7
+        //case XK_F11:          scancode = KEY_F11;     break;  //ffc8
+        case XK_F12:            scancode = KEY_F12;     break;  //ffc9
+        case XK_F11:
             rfbShutdownServer(cl->screen, TRUE);
-            break; // F11
+            break;      //ffc8
+
+        case XK_Home:           scancode = KEY_HOME;    break;  //ff50
+        case XK_Left:           scancode = KEY_LEFT;    break;  //ff51
+        case XK_Up:             scancode = KEY_UP;      break;  //ff52
+        case XK_Right:          scancode = KEY_RIGHT;   break;  //ff53
+        case XK_Down:           scancode = KEY_DOWN;    break;  //ff54
+        case XK_Page_Up:        scancode = KEY_PAGEUP;  break;  //ff55
+        case XK_Page_Down:      scancode = KEY_PAGEDOWN; break; //ff56
+        case XK_End:            scancode = KEY_END;     break;  //ff57
+        case XK_Begin:          scancode = KEY_HOME;    break;  //ff58
+
+        case XK_Shift_L:        scancode = KEY_LEFTSHIFT; break; //ffe1
+        case XK_Shift_R:        scancode = KEY_RIGHTSHIFT; break; //ffe2
+        case XK_Control_L:      scancode = KEY_LEFTCTRL; break; //ffe3
+        case XK_Control_R:      scancode = KEY_RIGHTCTRL; break; //ffe4
+        case XK_Alt_L:          scancode = KEY_LEFTALT; break;  //ffe9
+        case XK_Alt_R:          scancode = KEY_RIGHTALT; break; //ffea
         }
     }
 
