@@ -1,0 +1,28 @@
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Python package
+
+on:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '30 5 1 * *'
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libvncserver-dev cmake qt5-qmake qt5-default
+    - name: Test build
+      run: |
+        mkdir -p build1 && cd build1 && cmake .. && make && cd ..
+        mkdir -p build2 && cd build2 && qmake ../framebuffer-vncserver.pro && make && cd ..

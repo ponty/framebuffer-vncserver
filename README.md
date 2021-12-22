@@ -2,7 +2,7 @@
 
 VNC server for Linux framebuffer devices.
 
-[![Build Status](https://travis-ci.org/ponty/framebuffer-vncserver.svg?branch=master)](https://travis-ci.org/ponty/framebuffer-vncserver)
+![workflow](https://github.com/ponty/framebuffer-vncserver/actions/workflows/main.yml/badge.svg)
 
 The goal is to access remote embedded Linux systems without X.
 Implemented features: remote display, touchscreen, keyboard, rotation
