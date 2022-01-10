@@ -626,7 +626,8 @@ int main(int argc, char **argv)
                     i++;
                     if (argv[i])
                         touch_rotate = atoi(argv[i]);
-                case 'F':
+                    break;
+               case 'F':
                     i++;
                     if (argv[i])
                         target_fps = atoi(argv[i]);
