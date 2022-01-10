@@ -15,8 +15,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04]
-
+        os: 
+          - "ubuntu-18.04"
+          - "ubuntu-20.04"
     steps:
     - uses: actions/checkout@v2
     - name: Install dependencies
