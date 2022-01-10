@@ -43,7 +43,7 @@ Using cmake:
 	
 Using qmake:
 
-	mkdir -p build && cd build
+	mkdir -p buildqt && cd buildqt
 	qmake ../framebuffer-vncserver.pro
 	make
 
@@ -91,7 +91,7 @@ Local computer:
 Inside vagrant box:
 
 	sudo su
-	cd /home/vagrant/buildc/
+	cd /home/vagrant/build/
 
 	# build framebuffer-vncserver
 	make

@@ -1,8 +1,6 @@
 #!/bin/bash
 export DEBIAN_FRONTEND=noninteractive
-# echo 'export distutils_issue8876_workaround_enabled=1' >> /home/vagrant/.profile
 sudo update-locale LANG=en_US.UTF-8 LANGUAGE=en.UTF-8
-# echo 'export export LC_ALL=C' >> /home/vagrant/.profile
 
 # tools
 sudo apt-get update
@@ -13,7 +11,9 @@ sudo apt-get install -y python3-pip
 sudo apt-get install -y libvncserver-dev
 sudo apt-get install -y build-essential flex bison
 sudo apt-get install -y cmake
-sudo apt-get install -y qt5-qmake qt5-default
+sudo apt-get install -y qt5-qmake
+sudo apt-get install -y qt5-qmake-bin
+sudo apt-get install -y qt5-default
 sudo apt-get install -y linux-source libssl-dev libelf-dev
 sudo apt-get install -y fbset fbcat fbterm fbi
 sudo apt-get install -y qmlscene
@@ -41,7 +41,7 @@ ln -s /vagrant/tests/vfb/Makefile Makefile
 make
 #./ins.sh
 
-echo '#!/bin/sh
+echo '#!/bin/bash
 modinfo /home/vagrant/vfb/vfb.ko
 modprobe fb_sys_fops
 modprobe sysfillrect
@@ -59,7 +59,7 @@ udevadm trigger
 
 echo 'SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-@reboot   root    vfbload.sh;sleep 0.1;fbset -g 640 480 640 480 16;/home/vagrant/buildc/framebuffer-vncserver -t /dev/input/ms -k /dev/input/kbd > /tmp/framebuffer-vncserver.log 2>&1
+@reboot   root    vfbload.sh;sleep 0.1;fbset -g 640 480 640 480 16;/home/vagrant/build/framebuffer-vncserver -t /dev/input/ms -k /dev/input/kbd > /tmp/framebuffer-vncserver.log 2>&1
   ' >/etc/cron.d/framebuffer-vncserver
 
 # https://askubuntu.com/questions/168279/how-do-i-build-a-single-in-tree-kernel-module
@@ -74,15 +74,15 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 # cmake build
 cd /home/vagrant
-mkdir -p buildc && cd buildc
+mkdir -p build && cd build
 cmake /vagrant
 make
 
 # qmake build
 cd /home/vagrant
-mkdir -p buildq && cd buildq
+mkdir -p buildqt && cd buildqt
 qmake /vagrant
 make
 
 fbset -g 640 480 640 480 16
-/home/vagrant/buildc/framebuffer-vncserver -t /dev/input/ms -k /dev/input/kbd >/tmp/framebuffer-vncserver.log 2>&1 &
+/home/vagrant/build/framebuffer-vncserver -t /dev/input/ms -k /dev/input/kbd >/tmp/framebuffer-vncserver.log 2>&1 &

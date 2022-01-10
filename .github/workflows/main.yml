@@ -25,5 +25,5 @@ jobs:
         sudo apt-get install -y libvncserver-dev cmake qt5-qmake qt5-default
     - name: Test build
       run: |
-        mkdir -p build1 && cd build1 && cmake .. && make && cd ..
-        mkdir -p build2 && cd build2 && qmake ../framebuffer-vncserver.pro && make && cd ..
+        mkdir -p build && cd build && cmake .. && make && cd ..
+        mkdir -p buildqt && cd buildqt && qmake ../framebuffer-vncserver.pro && make && cd ..

@@ -11,7 +11,6 @@ import vagrant
 from entrypoint2 import entrypoint
 from PIL import Image, ImageChops
 
-# from fabric.api import env, execute, task, run, sudo, settings
 from vncdotool import api
 
 # pip3 install fabric vncdotool python-vagrant entrypoint2
@@ -21,9 +20,9 @@ print(sys.version)
 
 
 def build(conn):
-    # with c.cd("/home/vagrant/buildc"): # bug in invoke: https://github.com/pyinvoke/invoke/issues/459
-    conn.sudo('sh -c "cd /home/vagrant/buildc;cmake /vagrant"')
-    conn.sudo('sh -c "cd /home/vagrant/buildc;make"')
+    # with c.cd("/home/vagrant/build"): # bug in invoke: https://github.com/pyinvoke/invoke/issues/459
+    conn.sudo('sh -c "cd /home/vagrant/build;cmake /vagrant"')
+    conn.sudo('sh -c "cd /home/vagrant/build;make"')
 
 
 def set_resolution(conn, *res):
@@ -43,7 +42,7 @@ def run_in_background(conn, cmd):
 
 def start_server(conn, rotation, res):
     conn.sudo("killall framebuffer-vncserver", warn=True)
-    command = f"/home/vagrant/buildc/framebuffer-vncserver -r {rotation}"
+    command = f"/home/vagrant/build/framebuffer-vncserver -r {rotation}"
     print(f"command: {command}")
     run_in_background(conn, command)
 
