@@ -69,7 +69,7 @@ To run at startup as a service using systemd, edit the file `fbvnc.service` make
 ```shell
 sudo cp fbvnc.service /etc/systemd/system/
 sudo systemctl enable fbvnc.service
-sudo systemctl start fbvcn.service
+sudo systemctl start fbvnc.service
 ```
 
 ## Vfb test
