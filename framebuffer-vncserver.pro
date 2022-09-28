@@ -6,6 +6,7 @@ CONFIG -= qt
 SOURCES += src/framebuffer-vncserver.c
 SOURCES += src/keyboard.c
 SOURCES += src/touch.c
+SOURCES += src/mouse.c
 
 include(deployment.pri)
 qtcAddDeployment()
