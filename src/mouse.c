@@ -125,8 +125,8 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x, 
     static int last_buttonMask;
     static int last_x;
     static int last_y;
-    static int wheel_up;
-    static int wheel_down;
+    static int wheel_tick;
+    
     
     struct input_event ev;
     int xin = x;
@@ -184,13 +184,17 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x, 
                 info_print("Button %s=%04X\n",mouseButtonMap[bi].name, mouseButtonMap[bi].value);
             }
         }
-
-        // WHEEL UP
+        
         if(CHECK_BIT(buttonMask,WHEEL_UP))
         {
-            wheel_up++;
+            wheel_tick++;
         }
-        else if(wheel_up)
+        else if(CHECK_BIT(buttonMask,WHEEL_DOWN))
+        {
+            wheel_tick--;
+        }
+
+        if(wheel_tick)
         {
             // Then send the WHEEL
             gettimeofday(&time, 0);
@@ -198,7 +202,7 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x, 
             ev.input_event_usec = time.tv_usec;
             ev.type = EV_REL;
             ev.code = REL_WHEEL;
-            ev.value = wheel_up;
+            ev.value = wheel_tick;
             if (write(mousefd, &ev, sizeof(ev)) < 0)
             {
                 error_print("write event failed, %s\n", strerror(errno));
@@ -209,47 +213,13 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x, 
             	ev.input_event_usec = time.tv_usec;
             	ev.type = EV_REL;
             	ev.code = REL_WHEEL_HI_RES;
-            	ev.value = wheel_up*120 ;
+            	ev.value = wheel_tick*120 ;
             	if (write(mousefd, &ev, sizeof(ev)) < 0)
             	{
                 	error_print("write event failed, %s\n", strerror(errno));
             	}            				
 			}
-            wheel_up = 0;
-        }
-        // WHEEL DOWN
-        if(CHECK_BIT(buttonMask,WHEEL_DOWN))
-        {
-            wheel_down++;
-            info_print("whell down up %d \n",wheel_down);
-        }
-        else if(wheel_down)
-        {
-            info_print("whell down down %d \n",wheel_down);
-            // Then send the WHEEL
-            gettimeofday(&time, 0);
-            ev.input_event_sec = time.tv_sec;
-            ev.input_event_usec = time.tv_usec;
-            ev.type = EV_REL;
-            ev.code = REL_WHEEL;
-            ev.value = -wheel_down;
-            if (write(mousefd, &ev, sizeof(ev)) < 0)
-            {
-                error_print("write event failed, %s\n", strerror(errno));
-            }
-			if(is_wheel_hires)
-			{
-            	ev.input_event_sec = time.tv_sec;
-            	ev.input_event_usec = time.tv_usec;
-            	ev.type = EV_REL;
-            	ev.code = REL_WHEEL_HI_RES;
-            	ev.value = -wheel_down*120 ;
-            	if (write(mousefd, &ev, sizeof(ev)) < 0)
-            	{
-                	error_print("write event failed, %s\n", strerror(errno));
-            	}            				
-			}
-            wheel_down = 0;
+            wheel_tick = 0;
         }
         last_buttonMask = buttonMask;
     }
@@ -300,5 +270,5 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x, 
     {
         error_print("write event failed, %s\n", strerror(errno));
     }
-    debug_print("injectMouseEvent (screen(%d,%d) -> mouse(%d,%d), button=%d)\n", xin, yin, x, y, buttonMask);
+    debug_print("injectMouseEvent (screen(%d,%d) -> mouse(%d,%d), button=%d, wheel tick=%d)\n", xin, yin, x, y, buttonMask,wheel_tick);
 }
