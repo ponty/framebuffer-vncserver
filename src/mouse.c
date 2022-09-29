@@ -29,6 +29,7 @@ static int xmin, xmax;
 static int ymin, ymax;
 static int rotate;
 static int trkg_id = -1;
+static bool is_wheel_hires = false;
 
 #ifndef input_event_sec
 #define input_event_sec time.tv_sec
@@ -43,11 +44,16 @@ typedef struct
 
 #define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
 #define MAP(x) { #x,x }
-#define WHEEL_UP 4
-#define WHEEL_DOWN 5
+#define WHEEL_UP 3
+#define WHEEL_DOWN 4
 
 int init_mouse(const char *touch_device, int vnc_rotate)
 {
+	int size = (REL_CNT/32) + 1;
+	unsigned int evtype_bitmask[size];
+	/* Clean evtype_bitmask structure */
+	memset(evtype_bitmask, 0, sizeof(evtype_bitmask));
+
     info_print("Initializing mouse device %s ...\n", touch_device);
     struct input_absinfo info;
     if ((mousefd = open(touch_device, O_RDWR)) == -1)
@@ -55,6 +61,21 @@ int init_mouse(const char *touch_device, int vnc_rotate)
         error_print("cannot open mouse device %s\n", touch_device);
         return 0;
     }
+
+	//REL_WHEEL_HI_RES
+	if (ioctl(mousefd, EVIOCGBIT(EV_REL, sizeof(evtype_bitmask)), evtype_bitmask) < 0) {
+		error_print("%s  can't get evdev features: %s",touch_device, strerror(errno));
+		return 0;
+	}
+
+	int index = REL_WHEEL_HI_RES/32;
+    int offset = REL_WHEEL_HI_RES - (index*32);
+	if(CHECK_BIT(evtype_bitmask[index],offset))
+	{
+		info_print("%s has hi res wheel.\n",touch_device);
+		is_wheel_hires = false;
+	}
+
     // Get the Range of X and Y
     if (ioctl(mousefd, EVIOCGABS(ABS_X), &info))
     {
@@ -168,22 +189,32 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x, 
         if(CHECK_BIT(buttonMask,WHEEL_UP))
         {
             wheel_up++;
-            info_print("whell up up %d\n",wheel_up);
         }
         else if(wheel_up)
         {
-            info_print("whell up down %d\n",wheel_up);
             // Then send the WHEEL
             gettimeofday(&time, 0);
             ev.input_event_sec = time.tv_sec;
             ev.input_event_usec = time.tv_usec;
             ev.type = EV_REL;
             ev.code = REL_WHEEL;
-            ev.value = -wheel_up;
+            ev.value = wheel_up;
             if (write(mousefd, &ev, sizeof(ev)) < 0)
             {
                 error_print("write event failed, %s\n", strerror(errno));
             }            
+			if(is_wheel_hires)
+			{
+            	ev.input_event_sec = time.tv_sec;
+            	ev.input_event_usec = time.tv_usec;
+            	ev.type = EV_REL;
+            	ev.code = REL_WHEEL_HI_RES;
+            	ev.value = wheel_up*120 ;
+            	if (write(mousefd, &ev, sizeof(ev)) < 0)
+            	{
+                	error_print("write event failed, %s\n", strerror(errno));
+            	}            				
+			}
             wheel_up = 0;
         }
         // WHEEL DOWN
@@ -201,11 +232,23 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x, 
             ev.input_event_usec = time.tv_usec;
             ev.type = EV_REL;
             ev.code = REL_WHEEL;
-            ev.value = wheel_down;
+            ev.value = -wheel_down;
             if (write(mousefd, &ev, sizeof(ev)) < 0)
             {
                 error_print("write event failed, %s\n", strerror(errno));
-            }            
+            }
+			if(is_wheel_hires)
+			{
+            	ev.input_event_sec = time.tv_sec;
+            	ev.input_event_usec = time.tv_usec;
+            	ev.type = EV_REL;
+            	ev.code = REL_WHEEL_HI_RES;
+            	ev.value = -wheel_down*120 ;
+            	if (write(mousefd, &ev, sizeof(ev)) < 0)
+            	{
+                	error_print("write event failed, %s\n", strerror(errno));
+            	}            				
+			}
             wheel_down = 0;
         }
         last_buttonMask = buttonMask;
