@@ -38,6 +38,7 @@
 #include "rfb/keysym.h"
 
 #include "touch.h"
+#include "mouse.h"
 #include "keyboard.h"
 #include "logging.h"
 
@@ -52,6 +53,7 @@
 static char fb_device[256] = "/dev/fb0";
 static char touch_device[256] = "";
 static char kbd_device[256] = "";
+static char mouse_device[256] = "";
 
 static struct fb_var_screeninfo var_scrinfo;
 static struct fb_fix_screeninfo fix_scrinfo;
@@ -165,7 +167,8 @@ static void keyevent(rfbBool down, rfbKeySym key, rfbClientPtr cl)
         injectKeyEvent(scancode, down);
     }
 }
-static void ptrevent(int buttonMask, int x, int y, rfbClientPtr cl)
+
+static void ptrevent_touch(int buttonMask, int x, int y, rfbClientPtr cl)
 {
     UNUSED(cl);
     /* Indicates either pointer movement or a pointer button press or release. The pointer is
@@ -202,9 +205,26 @@ a press and release of button 5.
     }
 }
 
+static void ptrevent_mouse(int buttonMask, int x, int y, rfbClientPtr cl)
+{
+    UNUSED(cl);
+    /* Indicates either pointer movement or a pointer button press or release. The pointer is
+now at (x-position, y-position), and the current state of buttons 1 to 8 are represented
+by bits 0 to 7 of button-mask respectively, 0 meaning up, 1 meaning down (pressed).
+On a conventional mouse, buttons 1, 2 and 3 correspond to the left, middle and right
+buttons on the mouse. On a wheel mouse, each step of the wheel upwards is represented
+by a press and release of button 4, and each step downwards is represented by
+a press and release of button 5.
+  From: http://www.vislab.usyd.edu.au/blogs/index.php/2009/05/22/an-headerless-indexed-protocol-for-input-1?blog=61 */
+
+    debug_print("Got mouse: %04x (x=%d, y=%d)\n", buttonMask, x, y);
+    // Simulate left mouse event as touch event
+    injectMouseEvent(&var_scrinfo, buttonMask, x, y);
+}
+
 /*****************************************************************************/
 
-static void init_fb_server(int argc, char **argv, rfbBool enable_touch)
+static void init_fb_server(int argc, char **argv, rfbBool enable_touch, rfbBool enable_mouse)
 {
     info_print("Initializing server...\n");
 
@@ -234,8 +254,14 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch)
     server->kbdAddEvent = keyevent;
     if (enable_touch)
     {
-        server->ptrAddEvent = ptrevent;
+        server->ptrAddEvent = ptrevent_touch;
     }
+
+    if (enable_mouse)
+    {
+        server->ptrAddEvent = ptrevent_mouse;
+    }
+    
 
     rfbInitServer(server);
 
@@ -570,11 +596,12 @@ static void update_screen(void)
 
 void print_usage(char **argv)
 {
-    info_print("%s [-f device] [-p port] [-t touchscreen] [-k keyboard] [-r rotation] [-R touchscreen rotation] [-F FPS] [-v] [-h]\n"
+    info_print("%s [-f device] [-p port] [-t touchscreen] [-m touchscreen] [-k keyboard] [-r rotation] [-R touchscreen rotation] [-F FPS] [-v] [-h]\n"
                "-p port: VNC port, default is 5900\n"
                "-f device: framebuffer device node, default is /dev/fb0\n"
                "-k device: keyboard device node (example: /dev/input/event0)\n"
                "-t device: touchscreen device node (example:/dev/input/event2)\n"
+               "-m device: mouse device node (example:/dev/input/event2)\n"
                "-r degrees: framebuffer rotation, default is 0\n"
                "-R degrees: touchscreen rotation, default is same as framebuffer rotation\n"
                "-F FPS: Maximum target FPS, default is 10\n"
@@ -608,6 +635,11 @@ int main(int argc, char **argv)
                     if (argv[i])
                         strcpy(touch_device, argv[i]);
                     break;
+                case 'm':
+                    i++;
+                    if (argv[i])
+                        strcpy(mouse_device, argv[i]);
+                    break;                    
                 case 'k':
                     i++;
                     strcpy(kbd_device, argv[i]);
@@ -658,15 +690,27 @@ int main(int argc, char **argv)
     }
 
     rfbBool enable_touch = FALSE;
-    if (strlen(touch_device) > 0)
+    rfbBool enable_mouse = FALSE;
+    if(strlen(touch_device) > 0 && strlen(mouse_device) > 0)
+    {
+        error_print("It can't using both mouse and touch device.\n");
+        exit(EXIT_FAILURE);
+    }
+    else if (strlen(touch_device) > 0)
     {
         // init touch only if there is a touch device defined
         int ret = init_touch(touch_device, touch_rotate);
         enable_touch = (ret > 0);
     }
+    else if(strlen(mouse_device) > 0)
+    {
+        // init touch only if there is a mouse device defined
+        int ret = init_mouse(mouse_device, touch_rotate);
+        enable_mouse = (ret > 0);        
+    }
     else
     {
-        info_print("No touch device\n");
+        info_print("No touch or mouse device\n");
     }
 
     info_print("Initializing VNC server:\n");
@@ -675,9 +719,9 @@ int main(int argc, char **argv)
     info_print("	bpp:    %d\n", (int)var_scrinfo.bits_per_pixel);
     info_print("	port:   %d\n", (int)vnc_port);
     info_print("	rotate: %d\n", (int)vnc_rotate);
-    info_print("  touch rotate: %d\n", (int)touch_rotate);
+    info_print("  mouse/touch rotate: %d\n", (int)touch_rotate);
     info_print("    target FPS: %d\n", (int)target_fps);
-    init_fb_server(argc, argv, enable_touch);
+    init_fb_server(argc, argv, enable_touch, enable_mouse);
 
     /* Implement our own event loop to detect changes in the framebuffer. */
     while (1)
