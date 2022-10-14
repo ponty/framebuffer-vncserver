@@ -68,13 +68,15 @@ int init_mouse(const char *touch_device, int vnc_rotate)
 		return 0;
 	}
 
+#ifdef REL_WHEEL_HI_RES
 	int index = REL_WHEEL_HI_RES/32;
     int offset = REL_WHEEL_HI_RES - (index*32);
 	if(CHECK_BIT(evtype_bitmask[index],offset))
 	{
 		info_print("%s has hi res wheel.\n",touch_device);
-		is_wheel_hires = false;
+		is_wheel_hires = true;
 	}
+#endif 
 
     // Get the Range of X and Y
     if (ioctl(mousefd, EVIOCGABS(ABS_X), &info))
@@ -126,6 +128,7 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x, 
     static int last_x;
     static int last_y;
     static int wheel_tick;
+	int last_wheel_tick = 0;
     
     
     struct input_event ev;
@@ -201,24 +204,26 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x, 
             ev.input_event_sec = time.tv_sec;
             ev.input_event_usec = time.tv_usec;
             ev.type = EV_REL;
-            ev.code = REL_WHEEL;
-            ev.value = wheel_tick;
+			if(is_wheel_hires)
+			{
+#ifdef REL_WHEEL_HI_RES
+
+				info_print("HI RES WHEEL %d\n", wheel_tick);
+            	ev.code = REL_WHEEL_HI_RES;
+            	ev.value = wheel_tick*120;
+#endif 
+			}
+			else
+			{
+				info_print("WHEEL %d\n", wheel_tick);
+    	        ev.code = REL_WHEEL;
+        	    ev.value = wheel_tick;
+			}	
             if (write(mousefd, &ev, sizeof(ev)) < 0)
             {
                 error_print("write event failed, %s\n", strerror(errno));
-            }            
-			if(is_wheel_hires)
-			{
-            	ev.input_event_sec = time.tv_sec;
-            	ev.input_event_usec = time.tv_usec;
-            	ev.type = EV_REL;
-            	ev.code = REL_WHEEL_HI_RES;
-            	ev.value = wheel_tick*120 ;
-            	if (write(mousefd, &ev, sizeof(ev)) < 0)
-            	{
-                	error_print("write event failed, %s\n", strerror(errno));
-            	}            				
-			}
+            }
+			last_wheel_tick = wheel_tick;
             wheel_tick = 0;
         }
         last_buttonMask = buttonMask;
@@ -270,5 +275,5 @@ void injectMouseEvent(struct fb_var_screeninfo *scrinfo, int buttonMask, int x, 
     {
         error_print("write event failed, %s\n", strerror(errno));
     }
-    debug_print("injectMouseEvent (screen(%d,%d) -> mouse(%d,%d), button=%d, wheel tick=%d)\n", xin, yin, x, y, buttonMask,wheel_tick);
+    debug_print("injectMouseEvent (screen(%d,%d) -> mouse(%d,%d), button=%d, wheel tick=%d)\n", xin, yin, x, y, buttonMask, last_wheel_tick);
 }
