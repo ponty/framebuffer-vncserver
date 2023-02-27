@@ -13,7 +13,7 @@ sudo apt-get install -y build-essential flex bison
 sudo apt-get install -y cmake
 sudo apt-get install -y qt5-qmake
 sudo apt-get install -y qt5-qmake-bin
-sudo apt-get install -y qt5-default
+sudo apt-get install -y qtbase5-dev
 sudo apt-get install -y linux-source libssl-dev libelf-dev
 sudo apt-get install -y fbset fbcat fbterm fbi
 sudo apt-get install -y qmlscene
