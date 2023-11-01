@@ -52,8 +52,8 @@ insmod /home/vagrant/vfb/vfb.ko vfb_enable=1 videomemorysize=32000000
 chmod +x /usr/local/bin/vfbload.sh
 /usr/local/bin/vfbload.sh >/tmp/vfbload.log 2>&1
 
-echo 'ENV{ID_INPUT_MOUSE}==\"?*\",ENV{ID_PATH}==\"pci-0000:00:04.0\", SYMLINK+=\"input/ms\"' >/etc/udev/rules.d/98-input.rules
-echo 'ENV{ID_INPUT_KEYBOARD}==\"?*\", SYMLINK+=\"input/kbd\"' >>/etc/udev/rules.d/98-input.rules
+echo 'ENV{ID_INPUT_MOUSE}=="?*",ENV{ID_PATH}=="pci-0000:00:04.0", SYMLINK+="input/ms"' >/etc/udev/rules.d/98-input.rules
+echo 'ENV{ID_INPUT_KEYBOARD}=="?*", SYMLINK+="input/kbd"' >>/etc/udev/rules.d/98-input.rules
 udevadm control --reload-rules
 udevadm trigger
 

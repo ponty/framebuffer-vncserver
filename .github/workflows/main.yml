@@ -6,7 +6,7 @@ name: build
 on:
   schedule:
     # * is a special character in YAML so you have to quote this string
-    - cron:  '30 5 1 * *'
+    - cron:  '30 5 1 */3 *'
   push:
   pull_request:
 
