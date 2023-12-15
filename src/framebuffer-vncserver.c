@@ -45,7 +45,7 @@
 /*****************************************************************************/
 #define LOG_FPS
 
-#define BITS_PER_SAMPLE 5
+#define BITS_PER_SAMPLE 8
 #define SAMPLES_PER_PIXEL 2
 
 // #define CHANNELS_PER_PIXEL 4
@@ -482,11 +482,11 @@ static void update_screen(void)
             }
         }
     }
-    else if (bits_per_pixel == 16)
+    else if (vnc_rotate != 0)
     {
-        uint16_t *f = (uint16_t *)fbmmap; /* -> framebuffer         */
-        uint16_t *c = (uint16_t *)fbbuf;  /* -> compare framebuffer */
-        uint16_t *r = (uint16_t *)vncbuf; /* -> remote framebuffer  */
+        uint8_t *f = (uint8_t *)fbmmap; /* -> framebuffer         */
+        uint8_t *c = (uint8_t *)fbbuf;  /* -> compare framebuffer */
+        uint8_t *r = (uint8_t *)vncbuf; /* -> remote framebuffer  */
 
         switch (vnc_rotate)
         {
@@ -514,13 +514,11 @@ static void update_screen(void)
                 int x;
                 for (x = 0; x < (int)fb_xres; x++)
                 {
-                    uint16_t pixel = *f;
-
-                    if (pixel != *c)
+                    if (memcmp(f, c, bytespp) != 0)
                     {
                         int x2, y2;
 
-                        *c = pixel;
+                        memcpy(c, f, bytespp);
                         switch (vnc_rotate)
                         {
                         case 0:
@@ -547,7 +545,15 @@ static void update_screen(void)
                             exit(EXIT_FAILURE);
                         }
 
-                        r[y2 * server->width + x2] = PIXEL_FB_TO_RFB(pixel, varblock.r_offset, varblock.g_offset, varblock.b_offset);
+                        uint32_t pixel = 0;
+                        memcpy(&pixel, f, bytespp);     // copy FB pixel
+                        pixel = PIXEL_FB_TO_RFB(pixel,  // convert into RFB format
+                                                varblock.r_offset,
+                                                varblock.g_offset,
+                                                varblock.b_offset);
+
+                        // copy into RFB buffer
+                        memcpy(&r[y2 * server->width * bytespp + x2 * bytespp], &pixel, bytespp);
 
                         if (x2 < varblock.min_i)
                             varblock.min_i = x2;
@@ -563,8 +569,8 @@ static void update_screen(void)
                         }
                     }
 
-                    f++;
-                    c++;
+                    f += bytespp;
+                    c += bytespp;
                 }
             }
         }
