@@ -156,3 +156,5 @@ def main():
             tshot(conn, rot, w, h, 32)
         for rot in [90, 180, 270]:
             tshot(conn, rot, w, h, 16)
+        for rot in [90, 180, 270]:
+            tshot(conn, rot, w, h, 32)
